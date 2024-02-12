@@ -25,7 +25,7 @@ export default function Dashboard() {
       const response = await axios.post('/api/authentication/logout');
 
       if (response.status === 200) {
-        router.push('/login');
+        router.push('/authentication/login');
       } else {
         console.error('Logout failed');
       }
