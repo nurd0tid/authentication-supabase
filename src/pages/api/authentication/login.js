@@ -30,15 +30,15 @@ export default async function handler(req, res) {
 
     // Create JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { sud: user.id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '6h' }
     );
 
     // Set cookie
     res.setHeader('Set-Cookie', `currentUser=${JSON.stringify({
       accessToken: token,
-      expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1 jam
+      expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 1 jam
     })}; Path=/; HttpOnly`);
 
     return res.status(200).json({ message: 'Login successful' });
