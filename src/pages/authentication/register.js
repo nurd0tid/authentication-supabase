@@ -16,7 +16,7 @@ export default function Register() {
         email,
         password,
       });
-      if (response.status === 200) {
+      if (response.status === 201) {
         router.push('/authentication/login');
       }
     } catch (error) {

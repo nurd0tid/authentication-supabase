@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import supabase from '../../../../supabase';
 
 export default async function handler(req, res) {
