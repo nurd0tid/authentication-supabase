@@ -81,18 +81,18 @@ function generateOTP() {
 async function sendOTPByEmail(email, OTP) {
   // Create Nodemailer transporter
   let transporter = nodemailer.createTransport({
-    host: "your host",
-    port: 465,
-    secure: true,
+    host: process.env.HOST_EMAIL,
+    port: process.env.PORT_EMAIL,
+    secure: process.env.SECURE_EMAIL,
     auth: {
-      user: 'your user',
-      pass: 'your password',
+      user: process.env.USER_EMAIL,
+      pass: process.env.PASS_EMAIL,
     },
   });
 
   // Send OTP email
   await transporter.sendMail({
-    from: 'your email',
+    from: process.env.FROM_EMAIL,
     to: email,
     subject: 'OTP for Two-Factor Authentication',
     text: `Your OTP is: ${OTP}`,
