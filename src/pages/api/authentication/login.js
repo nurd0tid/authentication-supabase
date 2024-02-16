@@ -60,6 +60,12 @@ export default async function handler(req, res) {
       expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 6 hours
     })}; Path=/; HttpOnly`);
 
+    // Set Revoked status
+    await supabase
+      .from('authentication')
+      .update({ revoked_web: false })
+      .eq('email', email);
+
     return res.status(200).json({ message: 'Login successful' });
   } catch (error) {
     console.error('Error logging in:', error.message);

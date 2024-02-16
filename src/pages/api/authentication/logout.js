@@ -21,7 +21,8 @@ export default async function handler(req, res) {
       throw error;
     }
 
-    const { dataRevoked } = await supabase
+    // Set Revoked status
+    await supabase
     .from('authentication')
     .update({ revoked_web: true })
     .eq('id', sud);

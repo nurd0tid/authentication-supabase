@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     // Clear OTP from user's record
     await supabase
       .from('authentication')
-      .update({ otp_code: null })
+      .update({ otp_code: null, revoked_web: false })
       .eq('email', email);
 
     // Create JWT token
