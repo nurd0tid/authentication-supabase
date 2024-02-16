@@ -15,7 +15,14 @@ export default function Login() {
         password,
       });
       if (response.status === 200) {
-        router.push('/dashboard');
+        const { redirectTo } = response.data;
+        if (redirectTo) {
+          // Jika redirectTo tersedia, redirect ke halaman tersebut
+          router.push(redirectTo);
+        } else {
+          // Jika tidak, berarti login berhasil tanpa 2FA, redirect ke dashboard
+          router.push('/dashboard');
+        }
       }
     } catch (error) {
       alert(error.response.data.message);
