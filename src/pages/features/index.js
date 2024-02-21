@@ -7,11 +7,14 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function FeaturesGroup() {
   const [data, setData] = useState([]);
+  const [dataGroup, setDataGroup] = useState([]);
+  const [featuresId, setFeaturesId] = useState('');
   const [name, setName] = useState('');
   const [posision, setPosision] = useState('');
   const [groupId, setGroupId] = useState('');
   const [nameUpdate, setNameUpdate] = useState('');
   const [posisionUpdate, setPosisionUpdate] = useState('');
+  const [groupIdUpdate, setGroupIdUpdate] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showModalUpdate, setShowModalUpdate] = useState(false);
 
@@ -21,7 +24,7 @@ function FeaturesGroup() {
       const response = await axios.get('/api/features/group/read');
 
       if (response.status === 201) {
-        setData(response.data);
+        setDataGroup(response.data);
       } else {
         toast.error('Features Group entry fetch failed');
       }
@@ -35,67 +38,92 @@ function FeaturesGroup() {
     fetchFeaturesGroup();
   }, []);
 
-  // Function  Create
-  const handleCreateFeaturesGroup = async () => {
+  // Function Show Data
+  const fetchFeatures = async () => {
     try {
-      const response = await axios.post('/api/features/group/create', {
+      const response = await axios.get('/api/features/menu/read');
+
+      if (response.status === 201) {
+        setData(response.data);
+      } else {
+        toast.error('Features entry fetch failed');
+      }
+    } catch (error) {
+      toast.error('Error fetching features entry:', error);
+    }
+  };
+
+  // Fetching Blogs
+  useEffect(() => {
+    fetchFeatures();
+  }, []);
+
+  // Function  Create
+  const handleCreateFeatures = async () => {
+    try {
+      const response = await axios.post('/api/features/menu/create', {
         name,
         posision,
+        groupId,
       });
 
       if (response.status === 201) {
-        toast.success('Features Group entry created successfully');
+        toast.success('Features entry created successfully');
         setShowModal(false);
         setName('');
         setPosision('');
-        fetchFeaturesGroup();
+        setGroupId('');
+        fetchFeatures();
       }
     } catch (error) {
-      toast.error('Error creating features group entry:', error);
+      toast.error('Error creating features entry:', error);
     }
   };
 
   // Function  Update
-  const handleUpdateModal = (featuresGroup) => {
-    setGroupId(featuresGroup.id);
-    setNameUpdate(featuresGroup.name);
-    setPosisionUpdate(featuresGroup.posision);
+  const handleUpdateModal = (features) => {
+    setFeaturesId(features.id)
+    setNameUpdate(features.name);
+    setPosisionUpdate(features.posision)
+    setGroupIdUpdate(features.features_group.id);
     setShowModalUpdate(true);
   };
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.post('/api/features/group/update', {
+      const response = await axios.post('/api/features/menu/update', {
         name: nameUpdate,
         posision: posisionUpdate,
-        id: groupId
+        groupId: groupIdUpdate,
+        id: featuresId
       });
 
       if (response.status === 201) {
-        toast.success('Features Group entry uppdated successfully');
+        toast.success('Features entry uppdated successfully');
         setShowModalUpdate(false);
-        setGroupId('');
+        setFeaturesId('');
         setNameUpdate('');
         setPosisionUpdate('');
-        fetchFeaturesGroup();
+        setGroupIdUpdate('');
+        fetchFeatures();
       }
     } catch (error) {
-      toast.error('Error updated features group entry:', error);
+      toast.error('Error updated features entry:', error);
     }
   };
 
   // Function  Create
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete('/api/features/group/delete', {
+      const response = await axios.delete('/api/features/menu/delete', {
         data: { id }
       });
 
       if (response.status === 201) {
-        toast.info('Features Group entry delete successfully');
-        fetchFeaturesGroup();
+        toast.info('Features entry delete successfully');
+        fetchFeatures();
       } else {
-        toast.error('Features Group entry delete failed');
+        toast.error('Features entry delete failed');
       }
     } catch (error) {
       toast.success(error)
@@ -113,22 +141,24 @@ function FeaturesGroup() {
           <thead>
             <tr>
               <th>Name</th>
-              <th className='text-center'>posision</th>
+              <th className='text-center'>Posision</th>
+              <th className='text-center'>Group</th>
               <th className='text-center'>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {data.length > 0 ? (
-              data.map((featuresGroup, index) => (
+              data.map((features, index) => (
                 <tr key={index}>
-                  <td>{featuresGroup.name}</td>
-                  <td className='text-center'>{featuresGroup.posision}</td>
+                  <td>{features.name}</td>
+                  <td className='text-center'>{features.posision}</td>
+                  <td className='text-center'>{features.features_group.name}</td>
                   <td style={{ width: '120px'}} className='text-center'>
                     <span>
-                      <Button className='me-2' onClick={() => handleUpdateModal(featuresGroup)}>
+                      <Button className='me-2' onClick={() => handleUpdateModal(features)}>
                         <MdOutlineEdit/>
                       </Button>
-                      <Button className='btn btn-danger' onClick={() => handleDelete(featuresGroup.id)}>
+                      <Button className='btn btn-danger' onClick={() => handleDelete(features.id)}>
                         <MdDeleteOutline/>
                       </Button>
                     </span>
@@ -146,10 +176,10 @@ function FeaturesGroup() {
           </tbody>
         </Table>
 
-        {/* Modal untuk menambahkan features group */}
-        <Modal show={showModal} onHide={() => setShowModal(false)}> {/* 3. Tambahkan modal dengan state untuk mengontrol visibilitas */}
+        {/* Modal untuk menambahkan features */}
+        <Modal show={showModal} onHide={() => setShowModal(false)}> 
           <Modal.Header closeButton>
-            <Modal.Title>Add Features Group</Modal.Title>
+            <Modal.Title>Add Features</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <div>
@@ -172,21 +202,37 @@ function FeaturesGroup() {
                 onChange={(e) => setPosision(e.target.value)}
               />
             </div>
+            <div>
+              <Form.Label>Features Group</Form.Label>
+              <Form.Control
+                type="text"
+                as="select"
+                placeholder="Posision"
+                className='mb-2'
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value)}
+              >
+                <option>-- Pilih Group ---</option>
+                {dataGroup.map((group, index) => (
+                  <option key={index} value={group.id}>{group.name}</option>
+                ))}
+              </Form.Control>
+            </div>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowModal(false)}>
               Close
             </Button>
-            <Button variant="primary" onClick={handleCreateFeaturesGroup}>
+            <Button variant="primary" onClick={handleCreateFeatures}>
               Add
             </Button>
           </Modal.Footer>
         </Modal>
 
-        {/* Modal untuk edit features group */}
+        {/* Modal untuk edit features */}
         <Modal show={showModalUpdate} onHide={() => setShowModalUpdate(false)}>
           <Modal.Header closeButton>
-            <Modal.Title>Update Features Group</Modal.Title>
+            <Modal.Title>Update Features</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <div>
@@ -197,15 +243,33 @@ function FeaturesGroup() {
                 placeholder="New Name"
                 value={nameUpdate}
                 onChange={(e) => setNameUpdate(e.target.value)}
-              />
+                />
               <Form.Label>Posision</Form.Label>
+            </div>
+            <div>
               <Form.Control
                 type="text"
                 className='mb-2'
                 placeholder="New Posision"
                 value={posisionUpdate}
                 onChange={(e) => setPosisionUpdate(e.target.value)}
-              />
+                />
+            </div>
+            <div>
+              <Form.Label>Features Group</Form.Label>
+              <Form.Control
+                type="text"
+                as="select"
+                placeholder="Posision"
+                className='mb-2'
+                value={groupIdUpdate}
+                onChange={(e) => setGroupIdUpdate(e.target.value)}
+              >
+                <option>-- Pilih Group ---</option>
+                {dataGroup.map((group, index) => (
+                  <option key={index} value={group.id}>{group.name}</option>
+                ))}
+              </Form.Control>
             </div>
           </Modal.Body>
           <Modal.Footer>
