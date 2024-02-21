@@ -1,9 +1,9 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
+This is a staterpack full nextjs crud combine with supabase and jwt for authentication and role management in nextjs.
 ## Getting Started
 
 This, sample how to learn simple :
-CRUD NEXTJS + JWT (JSON WEB TOKEN) + LAYOUTING/TEMPLATING + ROLE MANAGEMENT
+
+### Crud Nextjs + JWT (Json Web Token) + Layouting/Templating + Role Management (RBAC - ACL) (Comming Soon)
 
 First, run the development server:
 
