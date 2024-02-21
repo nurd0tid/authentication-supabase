@@ -167,7 +167,7 @@ function FeaturesGroup() {
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="text-center">
+                <td colSpan="4" className="text-center">
                   <Image src="/assets/notfound.png" alt="No Products" fluid width={350}/>
                   <p>No records available.</p>
                 </td>

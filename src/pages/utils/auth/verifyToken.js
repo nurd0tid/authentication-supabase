@@ -4,7 +4,7 @@ import { verify } from 'jsonwebtoken';
 export default async function verifyToken(res, accessToken) {
   try {
     const decodedToken = verify(accessToken, process.env.JWT_SECRET);
-    const { sud } = decodedToken;
+    const { sun, sud } = decodedToken;
 
     const { data: blacklistData, error: blacklistError } = await supabase
       .from('blacklist')

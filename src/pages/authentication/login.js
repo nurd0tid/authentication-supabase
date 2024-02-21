@@ -31,17 +31,17 @@ export default function Login() {
   };
 
   return (
-    <Container>
+
       <Row className="justify-content-center" style={{ minHeight: '80vh', alignItems: 'center' }}>
-        <Col md={6}>
+        <Col md={3}>
           <h1>Login</h1>
           {error && <p>{error}</p>}
           <Form>
-            <Form.Group controlId="formBasicEmail">
+            <Form.Group controlId="formBasicEmail" className='mb-3'>
               <Form.Label>Email address</Form.Label>
               <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </Form.Group>
-            <Form.Group controlId="formBasicPassword">
+            <Form.Group controlId="formBasicPassword" className='mb-3'>
               <Form.Label>Password</Form.Label>
               <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </Form.Group>
@@ -51,6 +51,6 @@ export default function Login() {
           </Form>
         </Col>
       </Row>
-    </Container>
+
   );
 }
