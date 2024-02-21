@@ -8,8 +8,10 @@ import 'react-toastify/dist/ReactToastify.css';
 function FeaturesGroup() {
   const [data, setData] = useState([]);
   const [name, setName] = useState('');
+  const [posision, setPosision] = useState('');
   const [groupId, setGroupId] = useState('');
   const [nameUpdate, setNameUpdate] = useState('');
+  const [posisionUpdate, setPosisionUpdate] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showModalUpdate, setShowModalUpdate] = useState(false);
 
@@ -38,12 +40,14 @@ function FeaturesGroup() {
     try {
       const response = await axios.post('/api/features/group/create', {
         name,
+        posision,
       });
 
       if (response.status === 201) {
         toast.success('Features Group entry created successfully');
         setShowModal(false);
         setName('');
+        setPosision('');
         fetchFeaturesGroup();
       }
     } catch (error) {
@@ -55,6 +59,7 @@ function FeaturesGroup() {
   const handleUpdateModal = (featuresGroup) => {
     setGroupId(featuresGroup.id);
     setNameUpdate(featuresGroup.name);
+    setPosisionUpdate(featuresGroup.posision);
     setShowModalUpdate(true);
   };
 
@@ -62,6 +67,7 @@ function FeaturesGroup() {
     try {
       const response = await axios.post('/api/features/group/update', {
         name: nameUpdate,
+        posision: posisionUpdate,
         id: groupId
       });
 
@@ -70,6 +76,7 @@ function FeaturesGroup() {
         setShowModalUpdate(false);
         setGroupId('');
         setNameUpdate('');
+        setPosisionUpdate('');
         fetchFeaturesGroup();
       }
     } catch (error) {
@@ -106,6 +113,7 @@ function FeaturesGroup() {
           <thead>
             <tr>
               <th>Name</th>
+              <th className='text-center'>posision</th>
               <th className='text-center'>Aksi</th>
             </tr>
           </thead>
@@ -114,6 +122,7 @@ function FeaturesGroup() {
               data.map((featuresGroup, index) => (
                 <tr key={index}>
                   <td>{featuresGroup.name}</td>
+                  <td className='text-center'>{featuresGroup.posision}</td>
                   <td style={{ width: '120px'}} className='text-center'>
                     <span>
                       <Button className='me-2' onClick={() => handleUpdateModal(featuresGroup)}>
@@ -153,6 +162,16 @@ function FeaturesGroup() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
+            <div>
+              <Form.Label>Posision</Form.Label>
+              <Form.Control
+                type="number"
+                placeholder="Posision"
+                className='mb-2'
+                value={posision}
+                onChange={(e) => setPosision(e.target.value)}
+              />
+            </div>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -178,6 +197,14 @@ function FeaturesGroup() {
                 placeholder="New Name"
                 value={nameUpdate}
                 onChange={(e) => setNameUpdate(e.target.value)}
+              />
+              <Form.Label>Posision</Form.Label>
+              <Form.Control
+                type="text"
+                className='mb-2'
+                placeholder="New Posision"
+                value={posisionUpdate}
+                onChange={(e) => setPosisionUpdate(e.target.value)}
               />
             </div>
           </Modal.Body>

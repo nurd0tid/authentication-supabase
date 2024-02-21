@@ -15,11 +15,11 @@ export default async function handler(req, res) {
       const isValidToken = await verifyToken(res, accessToken);
 
       if (isValidToken) {
-        const { name, id } = req.body; // Menambahkan id untuk keperluan update
+        const { name, posision, id } = req.body; // Menambahkan id untuk keperluan update
 
         const { data, error } = await supabase
           .from('features_group')
-          .update({ name }) // Menggunakan metode update daripada insert
+          .update({ name, posision }) // Menggunakan metode update daripada insert
           .eq('id', id) // Menentukan kriteria untuk update (misalnya, ID)
           .single(); // Karena hanya update satu entitas, menggunakan single()
 
