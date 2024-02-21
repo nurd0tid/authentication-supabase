@@ -49,7 +49,10 @@ export default async function handler(req, res) {
 
     // Create JWT token
     const token = jwt.sign(
-      { sud: user.id },
+      { 
+        sun: user.name,
+        sud: user.id 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '6h' }
     );

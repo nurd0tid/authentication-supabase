@@ -12,11 +12,11 @@ export default async function handler(req, res) {
   try {
     const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
 
-    const { sud } = decodedToken;
+    const { sun, sud } = decodedToken;
 
     // Di sini Anda dapat menambahkan logika lain yang diperlukan, seperti mendapatkan data tambahan dari basis data, dll.
 
-    return res.status(200).json({ sud });
+    return res.status(200).json({ sun, sud });
   } catch (error) {
     console.error('Error fetching user data:', error.message);
     return res.status(500).json({ message: 'Internal Server Error' });
