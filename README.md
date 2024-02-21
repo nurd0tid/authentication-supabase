@@ -5,16 +5,23 @@ This, sample how to learn simple :
 
 ### Crud Nextjs + JWT (Json Web Token) + Layouting/Templating + Role Management (RBAC - ACL) (Comming Soon)
 
-First, run the development server:
+First, install package:
+```bash
+npm install
+# or
+yarn install
+# or
+etc
+```
+
+After install, run the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
 # or
-pnpm dev
-# or
-bun dev
+etc
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
