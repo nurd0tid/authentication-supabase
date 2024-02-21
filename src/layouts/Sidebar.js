@@ -33,18 +33,23 @@ const menuItems = [
     title: 'Management',
     list: [
       {
-        title: 'Menu',
-        path: '/dashboard/help',
+        title: 'Group Features',
+        path: '/features/group',
+        icon: <MdMenu />,
+      },
+      {
+        title: 'Features',
+        path: '/features',
         icon: <MdMenu />,
       },
       {
         title: 'Role',
-        path: '/dashboard/settings',
+        path: '/role',
         icon: <MdOutlineSupervisedUserCircle />,
       },
       {
         title: 'Permission',
-        path: '/dashboard/help',
+        path: '/permission',
         icon: <MdOutlineVerifiedUser />,
       },
     ],

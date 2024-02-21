@@ -1,4 +1,4 @@
-import supabase from "../../../../supabase";
+import supabase from "../../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
 export default async function handler(req, res) {
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
       if (isValidToken) {
         const { data, error } = await supabase
-          .from('blog')
+          .from('features_group')
           .select('*');
 
         if (error) {
