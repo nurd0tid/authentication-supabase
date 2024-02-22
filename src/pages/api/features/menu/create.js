@@ -15,11 +15,11 @@ export default async function handler(req, res) {
       const isValidToken = await verifyToken(res, accessToken);
 
       if (isValidToken) {
-        const { name, posision, groupId } = req.body;
+        const { name, posision, path, groupId } = req.body;
 
         const { data, error } = await supabase
           .from('features')
-          .insert([{ name, posision, features_group_id: groupId }])
+          .insert([{ name, posision, path, features_group_id: groupId }])
           .select();
 
         if (error) {

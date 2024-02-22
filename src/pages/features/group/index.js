@@ -200,7 +200,7 @@ function FeaturesGroup() {
               />
               <Form.Label>Posision</Form.Label>
               <Form.Control
-                type="text"
+                type="number"
                 className='mb-2'
                 placeholder="New Posision"
                 value={posisionUpdate}

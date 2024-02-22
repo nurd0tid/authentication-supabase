@@ -11,9 +11,11 @@ function FeaturesGroup() {
   const [featuresId, setFeaturesId] = useState('');
   const [name, setName] = useState('');
   const [posision, setPosision] = useState('');
+  const [path, setPath] = useState('');
   const [groupId, setGroupId] = useState('');
   const [nameUpdate, setNameUpdate] = useState('');
   const [posisionUpdate, setPosisionUpdate] = useState('');
+  const [pathUpdate, setPathUpdate] = useState('');
   const [groupIdUpdate, setGroupIdUpdate] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showModalUpdate, setShowModalUpdate] = useState(false);
@@ -64,6 +66,7 @@ function FeaturesGroup() {
       const response = await axios.post('/api/features/menu/create', {
         name,
         posision,
+        path,
         groupId,
       });
 
@@ -72,6 +75,7 @@ function FeaturesGroup() {
         setShowModal(false);
         setName('');
         setPosision('');
+        setPath('');
         setGroupId('');
         fetchFeatures();
       }
@@ -85,6 +89,7 @@ function FeaturesGroup() {
     setFeaturesId(features.id)
     setNameUpdate(features.name);
     setPosisionUpdate(features.posision)
+    setPathUpdate(features.path)
     setGroupIdUpdate(features.features_group.id);
     setShowModalUpdate(true);
   };
@@ -94,6 +99,7 @@ function FeaturesGroup() {
       const response = await axios.post('/api/features/menu/update', {
         name: nameUpdate,
         posision: posisionUpdate,
+        path: pathUpdate,
         groupId: groupIdUpdate,
         id: featuresId
       });
@@ -104,6 +110,7 @@ function FeaturesGroup() {
         setFeaturesId('');
         setNameUpdate('');
         setPosisionUpdate('');
+        setPathUpdate('');
         setGroupIdUpdate('');
         fetchFeatures();
       }
@@ -142,6 +149,7 @@ function FeaturesGroup() {
             <tr>
               <th>Name</th>
               <th className='text-center'>Posision</th>
+              <th className='text-center'>Path</th>
               <th className='text-center'>Group</th>
               <th className='text-center'>Aksi</th>
             </tr>
@@ -152,6 +160,7 @@ function FeaturesGroup() {
                 <tr key={index}>
                   <td>{features.name}</td>
                   <td className='text-center'>{features.posision}</td>
+                  <td className='text-center'>{features.path}</td>
                   <td className='text-center'>{features.features_group.name}</td>
                   <td style={{ width: '120px'}} className='text-center'>
                     <span>
@@ -167,7 +176,7 @@ function FeaturesGroup() {
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="text-center">
+                <td colSpan="5" className="text-center">
                   <Image src="/assets/notfound.png" alt="No Products" fluid width={350}/>
                   <p>No records available.</p>
                 </td>
@@ -200,6 +209,16 @@ function FeaturesGroup() {
                 className='mb-2'
                 value={posision}
                 onChange={(e) => setPosision(e.target.value)}
+              />
+            </div>
+            <div>
+              <Form.Label>Path</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Path"
+                className='mb-2'
+                value={path}
+                onChange={(e) => setPath(e.target.value)}
               />
             </div>
             <div>
@@ -248,11 +267,20 @@ function FeaturesGroup() {
             </div>
             <div>
               <Form.Control
-                type="text"
+                type="number"
                 className='mb-2'
                 placeholder="New Posision"
                 value={posisionUpdate}
                 onChange={(e) => setPosisionUpdate(e.target.value)}
+                />
+            </div>
+            <div>
+              <Form.Control
+                type="text"
+                className='mb-2'
+                placeholder="New Path"
+                value={pathUpdate}
+                onChange={(e) => setPathUpdate(e.target.value)}
                 />
             </div>
             <div>
