@@ -43,14 +43,9 @@ const menuItems = [
         icon: <MdMenu />,
       },
       {
-        title: 'Role',
-        path: '/role',
+        title: 'Roles',
+        path: '/roles',
         icon: <MdOutlineSupervisedUserCircle />,
-      },
-      {
-        title: 'Permission',
-        path: '/permission',
-        icon: <MdOutlineVerifiedUser />,
       },
     ],
   },
