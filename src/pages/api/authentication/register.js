@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Failed to register user' });
     }
 
-    res.status(200).json({ message: 'Registration successful' });
+    res.status(200).json({ message: 'Registration successfuly' });
   } catch (error) {
     res.status(500).json({ message: 'Internal Server Error' });
   }

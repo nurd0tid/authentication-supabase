@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     res.setHeader('Set-Cookie', 'currentUser=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly');
 
     // Berikan respons bahwa logout berhasil
-    return res.status(200).json({ message: 'Logout successful' });
+    return res.status(200).json({ message: 'Logout successfuly' });
   } catch (error) {
     return res.status(500).json({ message: 'Internal Server Error' });
   }

@@ -69,7 +69,7 @@ export default async function handler(req, res) {
       .update({ revoked_web: false })
       .eq('email', email);
 
-    return res.status(200).json({ message: 'Login successful' });
+    return res.status(200).json({ message: 'Login successfuly' });
   } catch (error) {
     console.error('Error logging in:', error.message);
     return res.status(500).json({ message: 'Internal Server Error' });
