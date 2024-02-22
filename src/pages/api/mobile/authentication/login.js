@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import supabase from '../../../../supabase';
+import supabase from '../../../../../supabase';
 import nodemailer from 'nodemailer'; // Import nodemailer for sending email
 
 export default async function handler(req, res) {
@@ -44,7 +44,10 @@ export default async function handler(req, res) {
         .eq('email', email);
       
       // Redirect user to OTP verification page
-      return res.status(200).json({ redirectTo: `/authentication/verifyotp?email=${encodeURIComponent(email)}` });
+      return res.status(200).json({
+        statusCode: 200,
+        message: `Waiting for redirect.` 
+      });
     }
 
     // Create JWT token
@@ -57,21 +60,20 @@ export default async function handler(req, res) {
       { expiresIn: '6h' }
     );
 
-    // Set cookie
-    res.setHeader('Set-Cookie', `currentUser=${JSON.stringify({
-      accessToken: token,
-      expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 6 hours
-    })}; Path=/; HttpOnly`);
-
     // Set Revoked status
     await supabase
       .from('users')
-      .update({ revoked_web: false })
+      .update({ revoked_mobile: false })
       .eq('email', email);
 
-    return res.status(200).json({ message: 'Login successful' });
+    return res.status(200).json({
+      statusCode: 200,
+      message: 'Login successfuly',
+      accessToken: token,
+      expiresAt: new Date(Date.now() + 6 * 3600000).toISOString()
+    });
+
   } catch (error) {
-    console.error('Error logging in:', error.message);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 }

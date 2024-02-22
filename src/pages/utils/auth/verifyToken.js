@@ -4,7 +4,7 @@ import { verify } from 'jsonwebtoken';
 export default async function verifyToken(res, accessToken) {
   try {
     const decodedToken = verify(accessToken, process.env.JWT_SECRET);
-    const { sun, sud } = decodedToken;
+    const { sud } = decodedToken;
 
     const { data: blacklistData, error: blacklistError } = await supabase
       .from('blacklist')
@@ -12,7 +12,6 @@ export default async function verifyToken(res, accessToken) {
       .eq('token_blacklist', accessToken);
 
     if (blacklistError) {
-      console.error(blacklistError);
       return res.status(500).json({ message: 'Internal Server Error' });
     }
 
@@ -22,12 +21,11 @@ export default async function verifyToken(res, accessToken) {
 
     // Set Revoked status
     const { data: authenticationData, error: authenticationError } = await supabase
-      .from('authentication')
+      .from('users')
       .select('id, revoked_web')
       .eq('id', sud);
 
     if (authenticationError) {
-      console.error(authenticationError);
       return res.status(500).json({ message: 'Internal Server Error' });
     }
 
@@ -37,7 +35,6 @@ export default async function verifyToken(res, accessToken) {
 
     return true;
   } catch (error) {
-    console.error(error);
     return false;
   }
 }

@@ -18,7 +18,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ sun, sud });
   } catch (error) {
-    console.error('Error fetching user data:', error.message);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 }

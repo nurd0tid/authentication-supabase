@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     // Clear OTP from user's record
     await supabase
       .from('users')
-      .update({ otp_code: null, revoked_web: false })
+      .update({ otp_code: null, revoked_mobile: false })
       .eq('email', email);
 
     // Create JWT token
@@ -38,13 +38,12 @@ export default async function handler(req, res) {
       { expiresIn: '6h' }
     );
 
-    // Set cookie
-    res.setHeader('Set-Cookie', `currentUser=${JSON.stringify({
+    return res.status(200).json({ 
+      statusCode: 200,
+      message: 'OTP verified successfully',
       accessToken: token,
-      expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 6 hours
-    })}; Path=/; HttpOnly`);
-
-    return res.status(200).json({ message: 'OTP verified successfully' });
+      expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(),
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Internal Server Error' });
   }
