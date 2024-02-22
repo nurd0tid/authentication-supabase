@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import supabase from '../../../../supabase';
+import supabase from '../../../../../supabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

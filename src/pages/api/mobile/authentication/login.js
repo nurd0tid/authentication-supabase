@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       // Redirect user to OTP verification page
       return res.status(200).json({
         statusCode: 200,
-        message: `Waiting for redirect.` 
+        message: `OTP has been sent to your email.` 
       });
     }
 

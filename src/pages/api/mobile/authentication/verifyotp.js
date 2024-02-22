@@ -1,4 +1,4 @@
-import supabase from '../../../../supabase';
+import supabase from '../../../../../supabase';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
