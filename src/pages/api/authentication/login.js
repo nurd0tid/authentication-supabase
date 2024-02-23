@@ -14,7 +14,10 @@ export default async function handler(req, res) {
     // Fetch user from Supabase
     const { data: user, error } = await supabase
       .from('users')
-      .select('*')
+      .select(`
+        *, 
+        roles ( id, name )
+      `)
       .eq('email', email)
       .single();
 
@@ -51,7 +54,9 @@ export default async function handler(req, res) {
     const token = jwt.sign(
       { 
         sun: user.name,
-        sud: user.id 
+        sud: user.id,
+        sur: user.role_id,
+        role: user.roles.name,
       },
       process.env.JWT_SECRET,
       { expiresIn: '6h' }

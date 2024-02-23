@@ -3,63 +3,16 @@ import { useRouter } from 'next/router';
 const axios = require('axios');
 
 import {
-  MdDashboard,
-  MdLogout,
-  MdNotes,
-  MdMenu,
-  MdOutlineSupervisedUserCircle,
-  MdOutlineVerifiedUser,
+  MdLogout
 } from 'react-icons/md';
 import { usePathname } from 'next/navigation'; // Assuming usePathname is correctly imported from 'next/navigation'
 import { Image } from 'react-bootstrap';
-
-const menuItems = [
-  {
-    title: 'Pages',
-    list: [
-      {
-        title: 'Dashboard',
-        path: '/dashboard',
-        icon: <MdDashboard />,
-      },
-      {
-        title: 'Blog',
-        path: '/blog',
-        icon: <MdNotes />,
-      },
-    ],
-  },
-  {
-    title: 'Management',
-    list: [
-      {
-        title: 'Group Features',
-        path: '/features/group',
-        icon: <MdMenu />,
-      },
-      {
-        title: 'Features',
-        path: '/features',
-        icon: <MdMenu />,
-      },
-      {
-        title: 'Roles',
-        path: '/roles',
-        icon: <MdOutlineSupervisedUserCircle />,
-      },
-      {
-        title: 'Users',
-        path: '/users',
-        icon: <MdOutlineVerifiedUser />,
-      },
-    ],
-  },
-];
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [userData, setUserData] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
 
   // Fetching Me
   useEffect(() => {
@@ -74,6 +27,25 @@ const Sidebar = () => {
 
     fetchData();
   }, []);
+
+  // Fetching Features
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      if (userData) {
+        const sur = userData?.sur;
+        try {
+          const response = await axios.post('/api/features/get', {
+            sur: sur,
+          });
+          setMenuItems(response.data);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchFeatures();
+  }, [userData]);
 
   const handleLogout = async () => {
     try {
@@ -101,7 +73,7 @@ const Sidebar = () => {
         />
         <div className="sidebar-userDetail">
           <span className="sidebar-username">{userData?.sun}</span>
-          <span className="sidebar-userTitle">{userData?.sud}</span>
+          <span className="sidebar-userTitle">{userData?.role}</span>
         </div>
       </div>
       <ul className="sidebar-list">
@@ -114,7 +86,7 @@ const Sidebar = () => {
                 href={item.path}
                 className={`sidebar-link ${pathname === item.path && 'active'}`}
               >
-                {item.icon}
+                <i className={item.icon}></i>
                 {item.title}
               </a>
             ))}
