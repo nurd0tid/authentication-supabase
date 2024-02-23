@@ -37,3 +37,23 @@ SECURE_EMAIL=
 USER_EMAIL=
 PASS_EMAIL=
 FROM_EMAIL=
+```
+
+After create enviroment, create file supabase.js in root folder.
+```javascript
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_KEY
+
+const supabase = createClient(supabaseUrl, supabaseKey, 
+  {
+    auth: {
+    autoRefreshToken: true,
+    persistSession: false,
+    detectSessionInUrl: false,
+  },
+})
+
+export default supabase
+```
