@@ -47,6 +47,11 @@ const menuItems = [
         path: '/roles',
         icon: <MdOutlineSupervisedUserCircle />,
       },
+      {
+        title: 'Users',
+        path: '/users',
+        icon: <MdOutlineVerifiedUser />,
+      },
     ],
   },
 ];

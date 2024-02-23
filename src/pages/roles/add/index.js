@@ -80,6 +80,12 @@ function AddRoles() {
         toast.success('Features entry created successfully');
         setNameRole('');
         setRolePermission([]);
+        
+        // Reset form switches to unchecked
+        const formSwitches = document.querySelectorAll('input[type="checkbox"]');
+        formSwitches.forEach(switchInput => {
+          switchInput.checked = false;
+        });
       }
     } catch (error) {
       toast.error('Error creating features entry:', error);
