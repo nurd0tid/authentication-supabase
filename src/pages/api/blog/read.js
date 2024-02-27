@@ -1,3 +1,4 @@
+import checkPermission from "@/pages/utils/auth/checkPermission";
 import supabase from "../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
@@ -11,10 +12,10 @@ export default async function handler(req, res) {
       }
 
       const { accessToken } = JSON.parse(cookie);
+      
+      const { isValid, roleId } = await verifyToken(accessToken);
 
-      const isValidToken = await verifyToken(res, accessToken);
-
-      if (isValidToken) {
+      if (isValid && await checkPermission(roleId, '/blog', 'Read')) {
         const { data, error } = await supabase
           .from('blog')
           .select('*');

@@ -22,11 +22,9 @@ function Blog() {
 
       if (response.status === 201) {
         setData(response.data);
-      } else {
-        toast.error('Blog entry fetch failed');
       }
     } catch (error) {
-      toast.error('Error fetching blog entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 

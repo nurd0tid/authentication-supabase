@@ -1,10 +1,14 @@
+import { jwtVerify } from 'jose';
 import supabase from '../../../../supabase';
-import { verify } from 'jsonwebtoken';
+// import { verify } from 'jsonwebtoken';
 
-export default async function verifyToken(res, accessToken) {
+export default async function verifyToken(accessToken) {
   try {
-    const decodedToken = verify(accessToken, process.env.JWT_SECRET);
-    const { sud } = decodedToken;
+    const key = new TextEncoder().encode(process.env.JWT_SECRET)
+    const { payload: decodedToken } = await jwtVerify(accessToken, key, {
+      algorithms: ['HS256'] // Menyertakan algoritma yang digunakan
+    });
+    const { sud, sur } = decodedToken;
 
     const { data: blacklistData, error: blacklistError } = await supabase
       .from('blacklist')
@@ -33,8 +37,12 @@ export default async function verifyToken(res, accessToken) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    return true;
+    return {
+      isValid: true,
+      userId: sud, // atau `id` sesuai dengan data token Anda
+      roleId: sur // Asumsikan Anda memiliki field role_id di users
+    };
   } catch (error) {
-    return false;
+    return { isValid: false };
   }
 }

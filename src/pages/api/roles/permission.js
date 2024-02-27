@@ -12,9 +12,9 @@ export default async function handler(req, res) {
 
       const { accessToken } = JSON.parse(cookie);
 
-      const isValidToken = await verifyToken(res, accessToken);
+      const { isValid } = await verifyToken(accessToken);
 
-      if (isValidToken) {
+      if (isValid) {
         const { data, error } = await supabase.rpc('get_permission');
 
         if (error) {

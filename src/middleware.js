@@ -1,39 +1,47 @@
 import { NextResponse } from 'next/server'
+import verifyToken from './pages/utils/auth/verifyToken';
+import checkPermission from './pages/utils/auth/checkPermission';
 
-export async function middleware(req) {
-  const { pathname } = req.nextUrl
-  const res = NextResponse.next()
-  
-  const currentUser = req.cookies.get("currentUser")?.value;
-  // console.log(JSON.parse(currentUser).accessToken)
-  const expiresAt = currentUser && new Date(JSON.parse(currentUser).expiresAt);
+export async function middleware(req, res) {
+  const { pathname } = req.nextUrl;
 
-  // if user is signed in and the current path is /authentication redirect the user to /account
-  if (currentUser && Date.now() > expiresAt) {
-    return NextResponse.redirect(new URL('/', req.url), {
+  // Langsung izinkan untuk halaman yang tidak memerlukan autentikasi
+  if (pathname === '/' || pathname.startsWith('/authentication/login')) {
+    return NextResponse.next();
+  }
+
+  const currentUserCookie = req.cookies.get("currentUser")?.value;
+  if (!currentUserCookie) {
+    // Tidak ada cookie currentUser, arahkan ke login
+    return NextResponse.redirect(new URL('/authentication/login', req.url));
+  }
+
+  const { accessToken, expiresAt } = JSON.parse(currentUserCookie);
+
+  if (!accessToken || new Date(expiresAt) < new Date()) {
+    // Token tidak ada atau sudah kedaluwarsa, hapus cookie dan arahkan ke login
+    console.log('b')
+    return NextResponse.redirect(new URL('/authentication/login', req.url), {
       headers: {
         'Set-Cookie': 'currentUser=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly'
       }
-    })
+    });
   }
+
+  const { isValid, roleId } = await verifyToken(accessToken);
   
-  // If user is signed in and the current path is / redirect the user to /dashboard
-  if (currentUser && req.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  if (!isValid) {
+    return NextResponse.redirect(new URL('/authentication/login', req.url));
   }
 
-  // if user is signed in and the current path is /authentication redirect the user to /account
-  if (currentUser && req.nextUrl.pathname.startsWith('/authentication')) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  const hasPermission = await checkPermission(roleId, pathname, 'Read');
+  if (!hasPermission) {
+    // Tidak memiliki izin yang cukup, arahkan ke halaman unauthorized
+    return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
-
-  // If user is not signed in and the current path is not / or /authentication allow access
-  if (!currentUser && (req.nextUrl.pathname !== '/' && !req.nextUrl.pathname.startsWith('/authentication'))) {
-    return NextResponse.redirect(new URL('/', req.url))
-  }
-
-  return res
+  // Jika semua kondisi terpenuhi, lanjutkan ke halaman yang dituju
+  return NextResponse.next();
 }
 
 export const config = {
@@ -44,4 +52,4 @@ export const config = {
     '/blog/:path*', 
     '/features/:path*', 
   ],
-}
+};

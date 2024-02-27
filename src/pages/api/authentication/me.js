@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+// import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 export default async function handler(req, res) {
   const cookie = req.cookies.currentUser;
@@ -10,7 +11,11 @@ export default async function handler(req, res) {
   const { accessToken } = JSON.parse(cookie);
 
   try {
-    const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+    // const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+    const key = new TextEncoder().encode(process.env.JWT_SECRET)
+    const { payload: decodedToken } = await jwtVerify(accessToken, key, {
+      algorithms: ['HS256'] // Menyertakan algoritma yang digunakan
+    });
 
     const { sun, sud, sur, role } = decodedToken;
 
