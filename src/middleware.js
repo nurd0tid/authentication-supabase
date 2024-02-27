@@ -5,8 +5,13 @@ import checkPermission from './pages/utils/auth/checkPermission';
 export async function middleware(req, res) {
   const { pathname } = req.nextUrl;
 
+  // Langsung arahkan ke dashboard jika pengguna mengakses halaman login dalam keadaan sudah login
+  if ((pathname === '/authentication/login' || pathname === '/') && req.cookies.get("currentUser")) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
   // Langsung izinkan untuk halaman yang tidak memerlukan autentikasi
-  if (pathname === '/' || pathname.startsWith('/authentication/login')) {
+  if (pathname.startsWith('/authentication/login')) {
     return NextResponse.next();
   }
 
