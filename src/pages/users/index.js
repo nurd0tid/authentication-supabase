@@ -20,11 +20,9 @@ function Users() {
 
       if (response.status === 201) {
         setRoles(response.data);
-      } else {
-        toast.error('Features Group entry fetch failed');
       }
     } catch (error) {
-      toast.error('Error fetching features group entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 
@@ -40,11 +38,9 @@ function Users() {
 
       if (response.status === 201) {
         setData(response.data);
-      } else {
-        toast.error('Features entry fetch failed');
       }
     } catch (error) {
-      toast.error('Error fetching users entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 

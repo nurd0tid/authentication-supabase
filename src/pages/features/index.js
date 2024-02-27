@@ -27,11 +27,9 @@ function FeaturesGroup() {
 
       if (response.status === 201) {
         setDataGroup(response.data);
-      } else {
-        toast.error('Features Group entry fetch failed');
       }
     } catch (error) {
-      toast.error('Error fetching features group entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 
@@ -47,11 +45,9 @@ function FeaturesGroup() {
 
       if (response.status === 201) {
         setData(response.data);
-      } else {
-        toast.error('Features entry fetch failed');
       }
     } catch (error) {
-      toast.error('Error fetching features entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 

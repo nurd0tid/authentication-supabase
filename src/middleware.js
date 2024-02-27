@@ -20,7 +20,6 @@ export async function middleware(req, res) {
 
   if (!accessToken || new Date(expiresAt) < new Date()) {
     // Token tidak ada atau sudah kedaluwarsa, hapus cookie dan arahkan ke login
-    console.log('b')
     return NextResponse.redirect(new URL('/authentication/login', req.url), {
       headers: {
         'Set-Cookie': 'currentUser=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly'

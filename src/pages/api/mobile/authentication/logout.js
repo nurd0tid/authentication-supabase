@@ -1,5 +1,6 @@
 import supabase from '../../../../../supabase';
-import jwt from 'jsonwebtoken';
+// import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -9,7 +10,11 @@ export default async function handler(req, res) {
   const { accessToken } = req.body;
 
   try {
-    const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+    // const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+    const key = new TextEncoder().encode(process.env.JWT_SECRET)
+    const { payload: decodedToken } = await jwtVerify(accessToken, key, {
+      algorithms: ['HS256'] // Menyertakan algoritma yang digunakan
+    });
 
     const { sud } = decodedToken;
 

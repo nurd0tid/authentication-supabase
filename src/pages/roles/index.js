@@ -16,11 +16,9 @@ function Roles() {
 
       if (response.status === 201) {
         setData(response.data);
-      } else {
-        toast.error('Roles entry fetch failed');
       }
     } catch (error) {
-      toast.error('Error fetching roles entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 
