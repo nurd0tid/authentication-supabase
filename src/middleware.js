@@ -36,7 +36,7 @@ export async function middleware(req, res) {
   const hasPermission = await checkPermission(roleId, pathname, 'Read');
   if (!hasPermission) {
     // Tidak memiliki izin yang cukup, arahkan ke halaman unauthorized
-    return NextResponse.redirect(new URL('/unauthorized', req.url));
+    return NextResponse.redirect(new URL('/401', req.url));
   }
 
   // Jika semua kondisi terpenuhi, lanjutkan ke halaman yang dituju
