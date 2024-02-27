@@ -50,6 +50,8 @@ export const config = {
     '/authentication/:path*', 
     '/dashboard/:path*', 
     '/blog/:path*', 
-    '/features/:path*', 
+    '/features/:path*',
+    '/roles/:path*',
+    '/users/:path*',
   ],
 };
