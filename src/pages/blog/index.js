@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Table, Modal, Form, Image } from 'react-bootstrap';
+import { Button, Table, Modal, Form, Image, Row, Col, Card } from 'react-bootstrap';
 import { MdDeleteOutline, MdOutlineEdit } from 'react-icons/md';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Seo from '@/shared/layout-components/seo/seo';
+import PageHeader from '@/shared/layout-components/pageheader/pageHeader';
 
 function Blog() {
   const [data, setData] = useState([]);
@@ -42,14 +44,18 @@ function Blog() {
       });
 
       if (response.status === 201) {
-        toast.success('Blog entry created successfully');
+        toast.success(response.data.message);
         setShowModal(false);
         setTitle('');
         setDescription('');
         fetchBlog();
       }
     } catch (error) {
-      toast.error('Error creating blog entry:', error);
+      toast.error(error.response.data.message);
+      setShowModal(false);
+      setTitle('');
+      setDescription('');
+      fetchBlog();
     }
   };
 
@@ -70,7 +76,7 @@ function Blog() {
       });
 
       if (response.status === 201) {
-        toast.success('Blog entry uppdated successfully');
+        toast.success(response.data.message);
         setShowModalUpdate(false);
         setBlogId('');
         setTitleUpdate('');
@@ -78,7 +84,7 @@ function Blog() {
         fetchBlog();
       }
     } catch (error) {
-      toast.error('Error updated blog entry:', error);
+      toast.error(error.response.data.message);
     }
   };
 
@@ -90,59 +96,71 @@ function Blog() {
       });
 
       if (response.status === 201) {
-        toast.info('Blog entry delete successfully');
+        toast.info(response.data.message);
         fetchBlog();
       } else {
-        toast.error('Blog entry delete failed');
+        toast.error(response.data.message);
       }
     } catch (error) {
-      toast.success(error)
+      toast.error(error.response.data.message);
     }
   };
 
   return (
-    <>
+    <div>
       <ToastContainer />
-      <div className='main-content'>
-        <div className="d-flex justify-content-end mb-2">
-          <Button variant="primary" className="ml-auto" onClick={() => setShowModal(true)}>Add New</Button>
-        </div>
-        <Table className='table table-responsive table-bordered table-striped'>
-          <thead>
-            <tr className='text-center'>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length > 0 ? (
-              data.map((blog, index) => (
-                <tr key={index} className='text-center'>
-                  <td>{blog.title}</td>
-                  <td>{blog.description}</td>
-                  <td style={{ width: '120px'}}>
-                    <span>
-                      <Button className='me-2' onClick={() => handleUpdateModal(blog)}>
-                        <MdOutlineEdit/>
-                      </Button>
-                      <Button className='btn btn-danger' onClick={() => handleDelete(blog.id)}>
-                        <MdDeleteOutline/>
-                      </Button>
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="3" className="text-center">
-                  <Image src="/assets/notfound.png" alt="No Products" fluid width={350}/>
-                  <p>No records available.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
+      <Seo title="Blog"/>
+      <PageHeader titles="Blog" active="Blog" items={['']} />
+      <Row>
+        <Col xl={12}>
+          <Card>
+            <Card.Header>
+              <Card.Title as='h3'>Blog</Card.Title>
+            </Card.Header>
+            <Card.Body>
+              <div className="d-flex justify-content-end mb-2">
+                <Button variant="primary" className="ml-auto" onClick={() => setShowModal(true)}>Add New</Button>
+              </div>
+              <div className="table-responsive">
+                <Table className='table-bordered table-striped'>
+                  <thead>
+                    <tr className='text-center'>
+                      <th>Title</th>
+                      <th>Description</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.length > 0 ? (
+                      data.map((blog, index) => (
+                        <tr key={index} className='text-center'>
+                          <td>{blog.title}</td>
+                          <td>{blog.description}</td>
+                          <td style={{ width: '120px'}}>
+                            <span>
+                              <Button className='me-2' size='sm' onClick={() => handleUpdateModal(blog)}>
+                                <MdOutlineEdit/>
+                              </Button>
+                              <Button variant='danger' size='sm' onClick={() => handleDelete(blog.id)}>
+                                <MdDeleteOutline/>
+                              </Button>
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="text-center">
+                          <p>No records available.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
 
         {/* Modal untuk menambahkan blog */}
         <Modal show={showModal} onHide={() => setShowModal(false)}> {/* 3. Tambahkan modal dengan state untuk mengontrol visibilitas */}
@@ -211,10 +229,10 @@ function Blog() {
             </Button>
           </Modal.Footer>
         </Modal>
-      </div>
-    </>
+      </Row>
+    </div>
   )
 }
 
-Blog.layout = 'MainLayout'
+Blog.layout = 'Contentlayout'
 export default Blog

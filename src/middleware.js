@@ -11,7 +11,7 @@ export async function middleware(req, res) {
   }
 
   // Langsung izinkan untuk halaman yang tidak memerlukan autentikasi
-  if (pathname.startsWith('/authentication/login')) {
+  if (pathname.startsWith('/authentication/login') || pathname.startsWith('/authentication/register') || pathname.startsWith('/authentication/verifyotp')) {
     return NextResponse.next();
   }
 

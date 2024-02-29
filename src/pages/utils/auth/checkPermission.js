@@ -1,18 +1,41 @@
 import supabase from "../../../../supabase";
 
-// Contoh fungsi checkPermission yang diperbaiki
-async function checkPermission(roleId, featurePath, permissionName) {
+async function checkPermission(p_id, menuItemPath, permissionName) {
   try {
-    // Pertama, dapatkan feature_id berdasarkan path
-    const { data: featureData, error: featureError } = await supabase
-      .from('features')
-      .select('id')
-      .eq('path', featurePath)
-      .single(); // Asumsikan path unik, gunakan .single() untuk mendapatkan satu objek langsung
+    // Pertama, dapatkan menu_item atau menu_sub_item berdasarkan path
+    // Kita harus mencari di kedua tabel karena tidak tahu apakah path itu milik item atau sub-item
+    let menuItemData = null;
+    let menuItemError = null;
 
-    if (featureError || !featureData) {
-      console.error(featureError);
-      return false; // Jika tidak ada feature yang cocok, tidak perlu melanjutkan
+    // Cek di menu_item terlebih dahulu
+    let { data: menuItem, error: menuItemErrorCheck } = await supabase
+      .from('menu_item')
+      .select('id')
+      .ilike('path', menuItemPath) // Menggunakan ilike untuk case-insensitive match
+      .single();
+
+    if (menuItemErrorCheck) console.error(menuItemErrorCheck);
+
+    // Jika tidak ditemukan di menu_item, cek di menu_sub_item
+    if (!menuItem) {
+      const { data: menuSubItem, error: menuSubItemError } = await supabase
+        .from('menu_sub_item')
+        .select('id')
+        .ilike('path', menuItemPath) // Menggunakan ilike untuk case-insensitive match
+        .single();
+
+      if (menuSubItem) {
+        menuItemData = menuSubItem;
+      }
+      menuItemError = menuSubItemError;
+    } else {
+      menuItemData = menuItem;
+    }
+
+    // Jika tidak ada menu item atau sub item yang cocok, tidak perlu melanjutkan
+    if (menuItemError || !menuItemData) {
+      console.error(menuItemError);
+      return false;
     }
 
     // Kedua, dapatkan permission_id berdasarkan name
@@ -27,12 +50,12 @@ async function checkPermission(roleId, featurePath, permissionName) {
       return false; // Jika tidak ada permission yang cocok, tidak perlu melanjutkan
     }
 
-    // Ketiga, cek apakah ada role_feature_permission yang cocok
+    // Ketiga, cek apakah ada role_menu_permissions yang cocok
     const { data: permissionCheckData, error: permissionCheckError } = await supabase
-      .from('role_feature_permissions')
+      .from('role_menu_permissions')
       .select('*')
-      .eq('role_id', roleId)
-      .eq('feature_id', featureData.id)
+      .eq('role_id', p_id)
+      .eq('menu_item_id', menuItemData.id)
       .eq('permission_id', permissionData.id);
 
     if (permissionCheckError) {

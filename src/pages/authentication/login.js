@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import axios from 'axios';
+import Seo from '@/shared/layout-components/seo/seo';
 import { useRouter } from 'next/router';
-import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
+import axios from 'axios';
+import { Form, Button, Spinner } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -19,10 +20,10 @@ export default function Login() {
         password,
       });
       if (response.status === 200) {
-        const { redirectTo } = response.data;
-        if (redirectTo) {
+        const { email } = response.data;
+        if (email) {
           toast.success(response.data.message);
-          router.push(redirectTo);
+          router.push(`/authentication/verifyotp?email=${encodeURIComponent(email)}`);
         } else {
           toast.success(response.data.message);
           router.push('/dashboard');
@@ -35,38 +36,72 @@ export default function Login() {
   };
 
   return (
-    <Container className="justify-content-center" style={{ minHeight: '80vh', alignItems: 'center' }}>
-      <ToastContainer />
-      <Col md={3}>
-        <h1>Login</h1>
-        <Form>
-          <Form.Group controlId="formBasicEmail" className='mb-3'>
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </Form.Group>
-          <Form.Group controlId="formBasicPassword" className='mb-3'>
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </Form.Group>
-          <Button variant="primary" onClick={handleLogin} className='mt-2' disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="mr-2"
-                />
-                Loading...
-              </>
-            ) : (
-              'Login'
-            )}
-          </Button>
-        </Form>
-      </Col>
-    </Container>
+    <>
+    <ToastContainer />
+    <div>
+        <Seo title="Login"/>
+        <div>
+          <div className="page">
+            {/* <!-- CONTAINER OPEN --> */}
+            <div className="container-login100">
+              <div className="wrap-login100 p-6">
+                <Form className="login100-form validate-form">
+                  <span className="login100-form-title pb-5"> Authentication</span>
+                    <div>
+                      <Form.Group className="text-start form-group" controlId="formEmail">
+                        <Form.Label>Email</Form.Label>
+                          <Form.Control
+                            className="form-control"
+                            placeholder="Enter your email"
+                            name="email"
+                            type='text'
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                      </Form.Group>
+                      <Form.Group
+                          className="text-start form-group"
+                          controlId="formpassword"
+                        >
+                        <Form.Label>Password</Form.Label>
+                        <Form.Control
+                          className="form-control"
+                          placeholder="Enter your password"
+                          name="password"
+                          type='password'
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+                      </Form.Group>
+                      <div className="container-login100-form-btn">
+                        <Button variant="primary" onClick={handleLogin} className='mt-2' disabled={isLoading}>
+                            {isLoading ? (
+                              <>
+                                <Spinner
+                                  as="span"
+                                  animation="border"
+                                  size="sm"
+                                  role="status"
+                                  aria-hidden="true"
+                                  className="mr-2"
+                                />
+                                Loading...
+                              </>
+                            ) : (
+                              'Login'
+                            )}
+                          </Button>
+                      </div>
+                    </div>
+                </Form>
+              </div>
+            </div>
+            {/* // <!-- CONTAINER CLOSED --> */}
+          </div>
+        </div>
+      </div >
+    </>
   );
 }

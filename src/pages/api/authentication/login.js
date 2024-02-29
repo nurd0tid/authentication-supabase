@@ -23,6 +23,7 @@ export default async function handler(req, res) {
       .single();
 
     if (error || !user) {
+      console.log(error)
       return res.status(400).json({ message: 'Invalid email or password' });
     }
     
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
         .eq('email', email);
       
       // Redirect user to OTP verification page
-      return res.status(200).json({ redirectTo: `/authentication/verifyotp?email=${encodeURIComponent(email)}` });
+      return res.status(200).json({ email: email });
     }
 
     // Create JWT token

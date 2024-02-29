@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       if (isValid) {
         const { sur } = req.body;
 
-        const { data, error } = await supabase.rpc('get_features_permission', {
+        const { data, error } = await supabase.rpc('get_fn_menu_permission', {
           p_id: sur,
         });
 

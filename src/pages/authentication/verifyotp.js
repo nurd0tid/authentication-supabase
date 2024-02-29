@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import Seo from '@/shared/layout-components/seo/seo';
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import { Container, Form, Button, Row, Col, Spinner } from 'react-bootstrap';
+import { Form, Button, Spinner } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -36,41 +37,57 @@ export default function VerifyOtp() {
   };
 
   return (
-    <Container className="justify-content-center" style={{ minHeight: '80vh', alignItems: 'center' }}>
-      <ToastContainer />
-      <Col md={3}>
+    <>
+    <ToastContainer />
+    <div>
+        <Seo title="Login"/>
         <div>
-          <h1>Verify OTP</h1>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formOtp">
-              <Form.Label>OTP:</Form.Label>
-              <Form.Control
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter OTP"
-              />
-            </Form.Group>
-            <Button variant="primary" type="submit" className='mt-2' disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="mr-2"
-                  />
-                  Verifying...
-                </>
-              ) : (
-                'Verify OTP'
-              )}
-            </Button>
-          </Form>
+          <div className="page">
+            {/* <!-- CONTAINER OPEN --> */}
+            <div className="container-login100">
+              <div className="wrap-login100 p-6">
+                <Form className="login100-form validate-form" onSubmit={handleSubmit}>
+                  <span className="login100-form-title pb-5"> Verification OTP</span>
+                    <div>
+                      <Form.Group className="text-start form-group" controlId="formOtp">
+                        <Form.Label>OTP</Form.Label>
+                          <Form.Control
+                            className="form-control"
+                            placeholder="Enter your otp"
+                            name="otp"
+                            type='text'
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            required
+                          />
+                      </Form.Group>
+                      <div className="container-login100-form-btn">
+                        <Button variant="primary" type="submit" className='mt-2' disabled={isLoading}>
+                            {isLoading ? (
+                              <>
+                                <Spinner
+                                  as="span"
+                                  animation="border"
+                                  size="sm"
+                                  role="status"
+                                  aria-hidden="true"
+                                  className="mr-2"
+                                />
+                                Verifying...
+                              </>
+                            ) : (
+                              'Verify OTP'
+                            )}
+                          </Button>
+                      </div>
+                    </div>
+                </Form>
+              </div>
+            </div>
+            {/* // <!-- CONTAINER CLOSED --> */}
+          </div>
         </div>
-      </Col>
-    </Container>
+      </div >
+    </>
   );
 }

@@ -18,6 +18,7 @@ export default async function handler(req, res) {
       .insert([{ name, email, password: hashedPassword }]);
 
     if (error) {
+      console.log(error)
       return res.status(500).json({ message: 'Failed to register user' });
     }
 

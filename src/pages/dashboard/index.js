@@ -1,20 +1,19 @@
-import React from 'react'
-import Rightbar from '../../../components/dashboard/Rightbar'
+import Seo from '@/shared/layout-components/seo/seo';
+import React from 'react';
+import PageHeader from '../../shared/layout-components/pageheader/pageHeader';
 
-function Dashboard() {
+const Dashboard = () => {
   return (
-    <div className='wrapper'>
-      <div className='main'>
-        <div className='cards'>
+    <div>
+      <Seo title="Dashboard"/>
 
-        </div>
-      </div>
-      <div className='side'>
-        <Rightbar/>
-      </div>
+      <div >
+      <PageHeader titles="Dashboard" active="Dashboard" items={['Home']} />
+
     </div>
-  )
-}
+    </div>
+  );
+};
 
-Dashboard.layout = 'MainLayout'
-export default Dashboard
+Dashboard.layout = "Contentlayout";
+export default Dashboard;
