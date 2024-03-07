@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   trailingSlash: false,
   swcMinify: true,
   basePath: "",
@@ -8,7 +8,7 @@ const nextConfig = {
   images: {
     loader: 'akamai',
     path: ''
-  }
+  },
 };
 
 export default nextConfig;

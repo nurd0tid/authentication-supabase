@@ -73,7 +73,7 @@ const Sidebar = () => {
         const response = await axios.get('/api/authentication/me');
         setRoleId(response.data?.sur);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.log(error)
       }
     };
 

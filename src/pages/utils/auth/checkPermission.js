@@ -14,7 +14,8 @@ async function checkPermission(p_id, menuItemPath, permissionName) {
       .ilike('path', menuItemPath) // Menggunakan ilike untuk case-insensitive match
       .single();
 
-    if (menuItemErrorCheck) console.error(menuItemErrorCheck);
+    if (menuItemErrorCheck);
+    // console.error(menuItemErrorCheck);
 
     // Jika tidak ditemukan di menu_item, cek di menu_sub_item
     if (!menuItem) {
@@ -34,7 +35,7 @@ async function checkPermission(p_id, menuItemPath, permissionName) {
 
     // Jika tidak ada menu item atau sub item yang cocok, tidak perlu melanjutkan
     if (menuItemError || !menuItemData) {
-      console.error(menuItemError);
+      // console.error(menuItemError);
       return false;
     }
 
@@ -46,7 +47,7 @@ async function checkPermission(p_id, menuItemPath, permissionName) {
       .single(); // Asumsikan name unik
 
     if (permissionError || !permissionData) {
-      console.error(permissionError);
+      // console.error(permissionError);
       return false; // Jika tidak ada permission yang cocok, tidak perlu melanjutkan
     }
 
@@ -59,7 +60,7 @@ async function checkPermission(p_id, menuItemPath, permissionName) {
       .eq('permission_id', permissionData.id);
 
     if (permissionCheckError) {
-      console.error(permissionCheckError);
+      // console.error(permissionCheckError);
       return false;
     }
 

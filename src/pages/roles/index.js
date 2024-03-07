@@ -91,5 +91,5 @@ function Roles() {
   )
 }
 
-Roles.layout = 'MainLayout'
+Roles.layout = 'Contentlayout'
 export default Roles
