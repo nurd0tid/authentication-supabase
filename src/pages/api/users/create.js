@@ -1,9 +1,10 @@
 import checkPermission from "@/pages/utils/auth/checkPermission";
-import supabase from "../../../../../supabase";
+import supabase from "../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
-  if (req.method === 'DELETE') { // Mengubah pengecekan metode menjadi DELETE
+  if (req.method === 'POST') {
     try {
       const cookie = req.cookies.currentUser;
 
@@ -15,19 +16,24 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/features/group', 'Delete')) {
-        const { id } = req.body; // Mengambil id dari request body untuk menghapus entri yang sesuai
+      if (isValid) {
+        const { full_name, email, password, photo, role_id } = req.body;
 
-        const { data, error } = await supabase
-          .from('features_group')
-          .delete() // Menggunakan metode delete untuk menghapus data
-          .eq('id', id); // Menghapus data dengan id yang sesuai
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const { data, error } = await supabase.rpc('create_fn_users', {
+          new_full_name: full_name,
+          new_email: email,
+          new_password: hashedPassword,
+          new_photo: photo,
+          new_role_id: role_id
+        });
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json({ message: 'Successfully deleted' }); // Memberikan respons bahwa data berhasil dihapus
+        res.status(201).json({ message: 'Successfully created' });
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }
@@ -36,7 +42,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal Server Error' });
     }
   } else {
-    res.setHeader('Allow', ['DELETE']); // Mengizinkan hanya metode DELETE
+    res.setHeader('Allow', ['POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

@@ -1,9 +1,9 @@
 import checkPermission from "@/pages/utils/auth/checkPermission";
-import supabase from "../../../../../supabase";
+import supabase from "../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+  if (req.method === 'DELETE') {
     try {
       const cookie = req.cookies.currentUser;
 
@@ -15,19 +15,17 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/features', 'Create')) {
-        const { name, posision, path, groupId } = req.body;
-
-        const { data, error } = await supabase
-          .from('features')
-          .insert([{ name, posision, path, features_group_id: groupId }])
-          .select();
+      if (isValid) {
+        const { id } = req.body;
+        const { data, error } = await supabase.rpc('delete_fn_users', {
+          user_id: id,
+        });
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json({ message: 'Successfully created' });
+        res.status(201).json({ message: 'Successfully deleted' });
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }
@@ -36,7 +34,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal Server Error' });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
+    res.setHeader('Allow', ['DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

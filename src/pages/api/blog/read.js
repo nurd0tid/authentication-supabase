@@ -15,16 +15,21 @@ export default async function handler(req, res) {
       
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/blog', 'Read')) {
-        const { data, error } = await supabase
-          .from('blog')
-          .select('*');
+      if (isValid) {
+        const { limit, offset, search } = req.query;
+        const decodedSearchTerm = decodeURIComponent(search);
+        
+        const { data, error } = await supabase.rpc('get_fn_blog', {
+            p_limit: limit,
+            p_offset:  offset,
+            p_search_text: decodedSearchTerm
+        });
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json(data);
+        res.status(201).json(data[0]);
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }

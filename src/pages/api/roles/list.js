@@ -1,9 +1,9 @@
 import checkPermission from "@/pages/utils/auth/checkPermission";
-import supabase from "../../../../../supabase";
+import supabase from "../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+  if (req.method === 'GET') {
     try {
       const cookie = req.cookies.currentUser;
 
@@ -15,20 +15,16 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/features/group', 'Update')) {
-        const { name, posision, id } = req.body; // Menambahkan id untuk keperluan update
-
+      if (isValid) {
         const { data, error } = await supabase
-          .from('features_group')
-          .update({ name, posision }) // Menggunakan metode update daripada insert
-          .eq('id', id) // Menentukan kriteria untuk update (misalnya, ID)
-          .single(); // Karena hanya update satu entitas, menggunakan single()
+          .from('roles')
+          .select('*');
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json({ message: 'Successfully updated' }); // Mengubah status code menjadi 200 karena operasi update berhasil
+        res.status(201).json(data);
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }
@@ -37,7 +33,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal Server Error' });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
+    res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

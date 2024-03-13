@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Table, Modal, Form, Image, Row, Col, Card } from 'react-bootstrap';
-import { MdDeleteOutline, MdOutlineEdit } from 'react-icons/md';
+import { Button, Table, Modal, Form, Image, InputGroup, Row, Col, Card, FormControl } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Seo from '@/shared/layout-components/seo/seo';
@@ -9,6 +8,10 @@ import PageHeader from '@/shared/layout-components/pageheader/pageHeader';
 
 function Blog() {
   const [data, setData] = useState([]);
+  const [rowCount, setRowCount] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [offset, setOffset] = useState(0);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [blogId, setBlogId] = useState('');
@@ -20,10 +23,18 @@ function Blog() {
   // Function Show Data
   const fetchBlog = async () => {
     try {
-      const response = await axios.get('/api/blog/read');
+      const searchTermEncoded = encodeURIComponent(searchTerm);
+      const response = await axios.get('/api/blog/read',  {
+        params: {
+          limit: pageSize,
+          offset: offset,
+          search: searchTermEncoded
+        }
+      });
 
       if (response.status === 201) {
-        setData(response.data);
+        setData(response.data.data);
+        setRowCount(response.data.row_count);
       }
     } catch (error) {
       toast.error(error.response.data.message);
@@ -33,7 +44,27 @@ function Blog() {
   // Fetching Blogs
   useEffect(() => {
     fetchBlog();
-  }, []);
+  }, [pageSize, offset, searchTerm]);
+
+  const maxPages = Math.ceil(rowCount / pageSize);
+  const currentPage = offset / pageSize + 1;
+
+  const handlePageSize = (e) => {
+    setOffset(0);
+    setPageSize(Number(e));
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < maxPages) {
+      setOffset(offset + pageSize);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setOffset(offset - pageSize);
+    }
+  };
 
   // Function  Create
   const handleCreateBlog = async () => {
@@ -116,48 +147,103 @@ function Blog() {
           <Card>
             <Card.Header>
               <Card.Title as='h3'>Blog</Card.Title>
+              <Button variant="primary" className="btn-sm ms-auto" onClick={() => setShowModal(true)}>Add New</Button>
             </Card.Header>
             <Card.Body>
-              <div className="d-flex justify-content-end mb-2">
-                <Button variant="primary" className="ml-auto" onClick={() => setShowModal(true)}>Add New</Button>
-              </div>
-              <div className="table-responsive">
-                <Table className='table-bordered table-striped'>
-                  <thead>
-                    <tr className='text-center'>
-                      <th>Title</th>
-                      <th>Description</th>
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.length > 0 ? (
-                      data.map((blog, index) => (
-                        <tr key={index} className='text-center'>
-                          <td>{blog.title}</td>
-                          <td>{blog.description}</td>
-                          <td style={{ width: '120px'}}>
-                            <span>
-                              <Button className='me-2' size='sm' onClick={() => handleUpdateModal(blog)}>
-                                <MdOutlineEdit/>
-                              </Button>
-                              <Button variant='danger' size='sm' onClick={() => handleDelete(blog.id)}>
-                                <MdDeleteOutline/>
-                              </Button>
-                            </span>
+              <Row className='mb-2 justify-content-between'>
+                <Col lg={2} md={12} className="mb-5">
+                  <div className='d-flex align-items-center'>
+                    <Form.Select
+                      value={pageSize}
+                      onChange={(e) => handlePageSize(e.target.value)}
+                      className='me-2'
+                    >
+                      {[5, 10, 25, 50].map((pageSize) => (
+                        <option key={pageSize} value={pageSize}>
+                          Show {pageSize}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </div>
+                </Col>
+                <Col lg={4} xs={12} className='mb-3'>
+                  <InputGroup>
+                    <FormControl
+                      type="text"
+                      placeholder="Search Name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </InputGroup> 
+                </Col>
+              </Row>
+              <Row>
+                <div className="table-responsive">
+                  <Table className='table-bordered table-striped'>
+                    <thead>
+                      <tr className='text-center'>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data && data.length > 0 ? (
+                        data.map((blog, index) => (
+                          <tr key={index} className='text-center'>
+                            <td>{blog.title}</td>
+                            <td>{blog.description}</td>
+                            <td style={{ width: '120px'}}>
+                              <div className='btn-list'>
+                                <Button className='btn-icon btn-sm' onClick={() => handleUpdateModal(blog)}>
+                                  <i className="fe fe-edit"></i>
+                                </Button>
+                                <Button className="btn-icon btn-sm" variant='danger' onClick={() => handleDelete(blog.id)}>
+                                  <i className="fe fe-trash"></i>
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="text-center">
+                            <p>No records available.</p>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="3" className="text-center">
-                          <p>No records available.</p>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-              </div>
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+                {data && data.length > 0 && (
+                  <div className="d-block d-sm-flex mt-4 align-items-center">
+                    <span className="">
+                      Page{" "}
+                      <strong>
+                        {currentPage} of {maxPages}
+                      </strong>{" "}
+                    </span>
+                    <span className="ms-sm-auto">
+                      <Button
+                        variant=""
+                        className="btn-default tablebutton d-sm-inline d-block me-2 my-2"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                      >
+                        {" Previous "}
+                      </Button>
+                      <Button
+                        variant=""
+                        className="btn-default tablebutton me-2 my-2"
+                        onClick={handleNextPage}
+                        disabled={currentPage === maxPages}
+                      >
+                        {" Next "}
+                      </Button>
+                    </span>
+                  </div>
+                )}
+              </Row>
             </Card.Body>
           </Card>
         </Col>

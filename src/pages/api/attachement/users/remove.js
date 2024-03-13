@@ -15,20 +15,18 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/features', 'Read')) {
-        const { name, posision, path, groupId, id } = req.body; // Menambahkan id untuk keperluan update
+      if (isValid) {
+        const { oldPhoto } = req.body;
 
-        const { data, error } = await supabase
-          .from('features')
-          .update({ name, posision, path, features_group_id: groupId }) // Menggunakan metode update daripada insert
-          .eq('id', id) // Menentukan kriteria untuk update (misalnya, ID)
-          .single(); // Karena hanya update satu entitas, menggunakan single()
+        const { data, error } = await supabase.storage
+        .from('users')
+        .remove(oldPhoto);
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json({ message: 'Successfully updated' }); // Mengubah status code menjadi 200 karena operasi update berhasil
+        res.status(201).json({ message: 'Successfully removed old photo' });
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }

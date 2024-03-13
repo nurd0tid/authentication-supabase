@@ -15,13 +15,12 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/blog', 'Delete')) {
-        const { id } = req.body; // Mengambil id dari request body untuk menghapus entri yang sesuai
+      if (isValid) {
+        const { id } = req.body;
 
-        const { data, error } = await supabase
-          .from('blog')
-          .delete() // Menggunakan metode delete untuk menghapus data
-          .eq('id', id); // Menghapus data dengan id yang sesuai
+        const { data, error } = await supabase.rpc('delete_fn_blog', {
+          blog_id: id
+        })
 
         if (error) {
           throw error;

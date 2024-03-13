@@ -15,12 +15,13 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/roles', 'Create')) {
-        const { name, roles } = req.body;
+      if (isValid) {
+        const { rolesName, selectedPermission, collectPath } = req.body;
 
-        const { data, error } = await supabase.rpc('create_fn_roles', {
-          name: name,
-          roles: roles,
+        const { data, error } = await supabase.rpc('create_fn_roles_permissions', {
+          new_roles_name: rolesName,
+          new_selected_permissions: selectedPermission,
+          new_collect_path: collectPath
         });
 
         if (error) {

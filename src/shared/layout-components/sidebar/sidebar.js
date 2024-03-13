@@ -66,7 +66,6 @@ const Sidebar = () => {
   const [roleId, setRoleId] = useState(null);
   const [menuitems, setMenuitems] = useState([]);
 
-  // Fetching Me
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -80,12 +79,11 @@ const Sidebar = () => {
     fetchData();
   }, []);
 
-  // Fetching Features
   useEffect(() => {
-    const fetchFeatures = async () => {
+    const fecthMenu = async () => {
       if (roleId) {
         try {
-          const response = await axios.post('/api/features/get', {
+          const response = await axios.post('/api/menu/list', {
             sur: roleId,
           });
           setMenuitems(response.data);
@@ -95,7 +93,7 @@ const Sidebar = () => {
       }
     };
 
-    fetchFeatures();
+    fecthMenu();
   }, [roleId]);
 
   useEffect(() => {

@@ -15,13 +15,13 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/blog', 'Create')) {
+      if (isValid) {
         const { title, description } = req.body;
 
-        const { data, error } = await supabase
-          .from('blog')
-          .insert([{ title, description }])
-          .select();
+        const { data, error } = await supabase.rpc('create_fn_blog', {
+          new_title: title,
+          new_description: description
+        });
 
         if (error) {
           throw error;

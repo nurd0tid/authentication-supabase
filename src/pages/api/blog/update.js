@@ -15,20 +15,20 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/blog', 'Update')) {
-        const { title, description, id } = req.body; // Menambahkan id untuk keperluan update
+      if (isValid) {
+        const { title, description, id } = req.body;
 
-        const { data, error } = await supabase
-          .from('blog')
-          .update({ title, description }) // Menggunakan metode update daripada insert
-          .eq('id', id) // Menentukan kriteria untuk update (misalnya, ID)
-          .single(); // Karena hanya update satu entitas, menggunakan single()
+        const { data, error } = await supabase.rpc('update_fn_blog', {
+          blog_id: id,
+          new_title: title,
+          new_description: description
+        })
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json({ message: 'Successfully updated' }); // Mengubah status code menjadi 200 karena operasi update berhasil
+        res.status(201).json({ message: 'Successfully updated' });
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }

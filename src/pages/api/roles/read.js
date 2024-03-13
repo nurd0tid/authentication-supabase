@@ -15,10 +15,8 @@ export default async function handler(req, res) {
 
       const { isValid, roleId } = await verifyToken(accessToken);
 
-      if (isValid && await checkPermission(roleId, '/roles', 'Read')) {
-        const { data, error } = await supabase
-          .from('roles')
-          .select('*');
+      if (isValid) {
+        const { data, error } = await supabase.rpc('get_role_permissions_list');
 
         if (error) {
           throw error;

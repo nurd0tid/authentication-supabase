@@ -3,6 +3,7 @@ import Seo from '@/shared/layout-components/seo/seo';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Accordion, Button, Card, Col, Form, Row } from 'react-bootstrap';
+import Creatable from "react-select/creatable";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -11,6 +12,68 @@ function AddRoles() {
   const [permission, setPermission] = useState([]);
   const [nameRole, setNameRole] = useState('');
   const [rolePermission, setRolePermission] = useState([]);
+  const [selected, setSelected] = useState([]);
+
+  const Group7 = [
+
+    {
+      value: "Apple",
+      label: "Apple"
+    },
+    {
+      value: "Mangoo",
+      label: "Mangoo"
+    },
+    {
+      value: "Banana",
+      label: "Banana"
+    },
+    {
+      value: "Jackfruit",
+      label: "Jackfruit"
+    }
+  ];
+  const Group8 = [
+    {
+      value: "BMW",
+      label: "BMW"
+    },
+    {
+      value: "Mercedes-benz",
+      label: "Mercedes-benz"
+    },
+    {
+      value: "Jaguar",
+      label: "Jaguar"
+    },
+    {
+      value: "Renault",
+      label: "Renault"
+    },
+    {
+      value: "Audi",
+      label: "Audi"
+    },
+    {
+      value: "Tesla",
+      label: "Tesla"
+    },
+    {
+      value: "Porsche",
+      label: "Porsche"
+    }
+  ];
+
+  const Groupeddata1 = [
+    {
+      label: "Fruits",
+      options: Group7
+    },
+    {
+      label: "Luxury Cars",
+      options: Group8,
+    }
+  ];
 
   const fetchFeatures = async () => {
     try {
@@ -177,7 +240,7 @@ function AddRoles() {
                     required
                   />
               </Form.Group>
-              <Row className='mb-2 pe-5'>
+              <Row className='mb-2 pe-3'>
                 <Col xl={8}>
                   <strong>Path Permissions</strong>
                 </Col>
@@ -194,136 +257,43 @@ function AddRoles() {
                   <h6><strong>Delete</strong></h6>
                 </Col>
               </Row>
-              <Accordion className="panel-default" alwaysOpen>
-                <Accordion.Item eventKey="0">
-
-                  <Accordion.Header>Main</Accordion.Header>
-                  <Accordion.Body>
-                    <Row className='mb-2'>
-                      <Col xl={8}>
-                        <i className='fe fe-home me-3'></i><span>Dashboard</span>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                    </Row>
-                    <Row className='mb-2'>
-                      <Col xl={8}>
-                        <i className='bi bi-journals me-3'></i><span>Blog</span>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                    </Row>
-                  </Accordion.Body>
-                </Accordion.Item>
-                <Accordion.Item eventKey="1">
-                  <Accordion.Header>Management</Accordion.Header>
-                  <Accordion.Body>
-                    <i className='bi bi-person-workspace me-3'></i><span>User Management</span>
-                    <Row className='mb-2 mt-2'>
-                      <Col xl={8}>
-                        <p className='px-5'><i className='bi bi-chevron-double-right'/> Roles</p>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                    </Row>
-                    <Row className='mb-2'>
-                      <Col xl={8}>
-                        <p className='px-5'><i className='bi bi-chevron-double-right'/> Add Roles</p>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                      <Col xl={1}>
-                        <label className="custom-control custom-checkbox-md">
-                          <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
-                          <span className="custom-control-label"></span>
-                        </label>
-                      </Col>
-                    </Row>
-                  </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
+              <Row className='mb-2'>
+                <Col xl={8}>
+                  <div>
+                    <Creatable
+                      isMulti
+                      classNamePrefix="Select2"
+                      options={Groupeddata1}
+                      value={selected}
+                      onChange={setSelected}
+                    />
+                  </div>
+                </Col>
+                <Col xl={1}>
+                  <label className="custom-control custom-checkbox-md">
+                    <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
+                    <span className="custom-control-label"></span>
+                  </label>
+                </Col>
+                <Col xl={1}>
+                  <label className="custom-control custom-checkbox-md">
+                    <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
+                    <span className="custom-control-label"></span>
+                  </label>
+                </Col>
+                <Col xl={1}>
+                  <label className="custom-control custom-checkbox-md">
+                    <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
+                    <span className="custom-control-label"></span>
+                  </label>
+                </Col>
+                <Col xl={1}>
+                  <label className="custom-control custom-checkbox-md">
+                    <input type="checkbox" className="custom-control-input" name="example-checkbox1" defaultValue="option1" />
+                    <span className="custom-control-label"></span>
+                  </label>
+                </Col>
+              </Row>
             </Card.Body>
           </Card>
         </Col>
