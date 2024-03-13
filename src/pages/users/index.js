@@ -6,6 +6,7 @@ import { Button, Table, Modal, Form, Image, Row, Col, Card, InputGroup, FormCont
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
 function Users() {
   const [data, setData] = useState([]);
@@ -167,11 +168,13 @@ function Users() {
         }
       }
 
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       const userData = {
         id: updatingUser.id,
         full_name: fullName,
         email: email,
-        password: password || oldPassword,
+        password: hashedPassword || oldPassword,
         photo: uploadedFileName || oldPhoto,
         role_id: roleId
       };
