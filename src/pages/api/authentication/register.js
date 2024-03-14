@@ -13,9 +13,11 @@ export default async function handler(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Simpan user ke database
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{ name, email, password: hashedPassword }]);
+    const { data, error } = await supabase.rpc('users_fn_register', {
+      p_name: name,
+      p_email: email,
+      p_password: hashedPassword
+    });
 
     if (error) {
       console.log(error)

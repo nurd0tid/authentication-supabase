@@ -478,3 +478,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- users register
+CREATE OR REPLACE FUNCTION users_fn_register(
+    p_name VARCHAR,
+    p_email VARCHAR,
+    p_password VARCHAR
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    user_id UUID;
+BEGIN
+    -- Cek apakah email sudah digunakan
+    SELECT id INTO user_id FROM users WHERE email = p_email;
+
+    IF user_id IS NOT NULL THEN
+        -- Email sudah digunakan, kirim pesan error
+        RAISE EXCEPTION 'Email already exists';
+    ELSE
+        -- Buat user baru
+        INSERT INTO users (name, email, password, role_id)
+        VALUES (p_name, p_email, p_password, '879a446c-6ff3-4bad-9fe5-9ca5cf7a1754')
+        RETURNING id INTO user_id;
+    END IF;
+END;
+$$;

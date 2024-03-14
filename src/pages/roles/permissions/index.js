@@ -99,6 +99,7 @@ function RolesPermissions() {
 
       if (response.status === 201) {
         toast.success(response.data.message);
+        fetchData();
         setShowModal(false);
       }
     } catch (error) {
