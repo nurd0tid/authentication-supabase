@@ -15,6 +15,13 @@ function RolesPermissions() {
   const [rolesName, setRolesName] = useState('');
   const [checkedPermissions, setCheckedPermissions] = useState([]);
   const [collectPath, setCollectPath] = useState([]);
+  const [updatedRoleId, setUpdatedRoleId] = useState('');
+  const [updatedRoleName, setUpdatedRoleName] = useState('');
+  const [updatedPaths, setUpdatedPaths] = useState([]);
+  const [updatedPermissions, setUpdatedPermissions] = useState([]);
+  const [oldPaths, setOldPaths] = useState([]);
+  const [oldPermissions, setOldPermissions] = useState([]);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
 
   const fetchData = async () => {
@@ -100,6 +107,101 @@ function RolesPermissions() {
     }
   }
 
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete('/api/roles/delete', {
+        data: { id }
+      });
+
+      if (response.status === 201) {
+        toast.info(response.data.message);
+        fetchData();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  };
+  
+
+  const handleEditRole = (role) => {
+    setUpdatedRoleId(role.role_id);
+    setUpdatedRoleName(role.role_name);
+    setUpdatedPaths(role.menu_permissions);
+    setUpdatedPermissions(role.role_permissions);
+    setOldPaths(role.menu_permissions);
+    setOldPermissions(role.role_permissions);
+    setShowUpdateModal(true);
+  };
+
+  const handlePermissionUpdate = (event, permissionId) => {
+  const isChecked = event.target.checked;
+  if (isChecked) {
+    // Menambahkan permission jika dicentang
+    setUpdatedPermissions(prevPermissions => [...prevPermissions, { id: permissionId }]);
+  } else {
+    // Menghapus permission jika tidak dicentang
+    setUpdatedPermissions(prevPermissions => prevPermissions.filter(permission => permission.id !== permissionId));
+  }
+};
+
+
+  const handleUpdate = async () => {
+    try {
+      // Menentukan data baru
+      const addedPaths = updatedPaths.filter(path => !oldPaths.includes(path));
+      const removedPaths = oldPaths.filter(path => !updatedPaths.includes(path));
+  
+      // Menentukan perubahan pada accessibility
+      const addedPermissions = updatedPermissions.reduce((acc, updatedPermission) => {
+        const found = oldPermissions.find(oldPermission => oldPermission.id === updatedPermission.id);
+        if (!found) {
+          acc.push(dataPermission.find(permission => permission.id === updatedPermission.id));
+        }
+        return acc;
+      }, []);
+
+      const removedPermissions = oldPermissions.reduce((acc, oldPermission) => {
+        const found = updatedPermissions.find(updatedPermission => updatedPermission.id === oldPermission.id);
+        if (!found) {
+          acc.push(dataPermission.find(permission => permission.id === oldPermission.id));
+        }
+        return acc;
+      }, []);
+
+      // console.log("Role ID:", updatedRoleId);
+      // console.log("Role Name:", updatedRoleName);
+      // console.log("Added paths:", addedPaths);
+      // console.log("Removed paths:", removedPaths);
+      // console.log("Added permissions:", addedPermissions);
+      // console.log("Removed permissions:", removedPermissions);
+  
+      const response = await axios.post('/api/roles/update', {
+        role_id: updatedRoleId, 
+        newName: updatedRoleName, 
+        newPath: addedPaths, 
+        removedPath: removedPaths, 
+        newPermission: addedPermissions,
+        removePermission: removedPermissions
+      });
+
+      if (response.status === 201) {
+        toast.success(response.data.message);
+        setUpdatedRoleId('');
+        setUpdatedRoleName('');
+        setUpdatedPaths([]);
+        setUpdatedPermissions([]);
+        setOldPaths([]);
+        setOldPermissions([]);
+        setShowUpdateModal(false);
+        fetchData();
+      }
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  };
+
   return (
     <div>
       <ToastContainer />
@@ -149,13 +251,13 @@ function RolesPermissions() {
                           </td>
                           <td style={{ width: '25%' }}>
                             {item.menu_permissions.map((menuPermission, index) => (
-                              <Badge pill bg="success" className='me-2' key={index}>{menuPermission}</Badge>
+                              <Badge pill bg="success" className='me-2' key={index}>{menuPermission.label}</Badge>
                             ))}
                           </td>
                           <td style={{ width: '15%' }}>
                             {item.role_permissions !== null ? (
                               item.role_permissions.map((rolesPermissions, index) => (
-                                <Badge bg="default" className='me-2' key={index}>{rolesPermissions}</Badge>
+                                <Badge bg="default" className='me-2' key={index}>{rolesPermissions.name}</Badge>
                               ))
                             ) : (
                               <span></span>
@@ -163,8 +265,8 @@ function RolesPermissions() {
                           </td>
                           <td>
                             <div className='btn-list'>
-                              <Button className="btn-icon btn-sm" variant='warning'><i className="fe fe-edit"></i></Button>
-                              <Button className="btn-icon btn-sm" variant='danger'><i className="fe fe-trash"></i></Button>
+                              <Button className="btn-icon btn-sm" variant='warning' onClick={() => handleEditRole(item)}><i className="fe fe-edit"></i></Button>
+                              <Button className="btn-icon btn-sm" variant='danger' onClick={() => handleDelete(item.role_id)}><i className="fe fe-trash"></i></Button>
                             </div>
                           </td>
                         </tr>
@@ -239,6 +341,62 @@ function RolesPermissions() {
             </Button>
             <Button variant="primary" onClick={handleSubmit}>
               Add
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Role</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group>
+              <Form.Label>Role Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={updatedRoleName}
+                onChange={(e) => setUpdatedRoleName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Permissions</Form.Label>
+              <div>
+                <Creatable
+                  isMulti
+                  classNamePrefix="Select2"
+                  options={dataPath}
+                  value={updatedPaths}
+                  onChange={setUpdatedPaths}
+                />
+              </div>
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Accessibility</Form.Label>
+              <Row className='mb-2'>
+                {dataPermission.map((permission, index) => (
+                  <Col xl={3} key={index}>
+                    <label className="custom-control custom-checkbox-md">
+                      <input 
+                        type="checkbox" 
+                        className="custom-control-input" 
+                        name={permission.name} 
+                        defaultValue={permission.id}
+                        checked={updatedPermissions.some(perm => perm.id === permission.id) || false}
+                        onChange={e => handlePermissionUpdate(e, permission.id)}
+                      />
+                      <span className="custom-control-label">{permission.name}</span>
+                    </label>
+                  </Col>
+                ))}
+              </Row>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleUpdate}>
+              Save Changes
             </Button>
           </Modal.Footer>
         </Modal>
