@@ -1,0 +1,4 @@
+id,menu_item_id,path,type,active,selected,title,position,created_at,updated_at
+c44f77c9-f504-4a95-a549-087905810412,860c37c5-f2e2-413c-a6c0-a9cf0db64232,/menu,link,false,false,List,1,2024-03-08 07:37:24.03902+00,2024-03-08 07:37:24.03902+00
+61dde7c6-148c-4732-937f-501ec0d413e2,860c37c5-f2e2-413c-a6c0-a9cf0db64232,/menu/item,link,false,false,Menu Item,2,2024-03-08 07:37:47.119956+00,2024-03-08 07:37:47.119956+00
+ecac81e5-d887-44e7-a46b-0b1120a342e8,860c37c5-f2e2-413c-a6c0-a9cf0db64232,/menu/sub,link,false,false,Menu Sub Item,3,2024-03-08 07:38:24.414533+00,2024-03-08 07:38:24.414533+00

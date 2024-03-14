@@ -1,0 +1,6 @@
+id,menu_id,path,icon,type,active,selected,title,position,created_at,updated_at
+dcc64efd-d21e-49ae-aece-0ec0dc60658f,94e07fb7-c0f8-4e29-ab48-7895c33e03fa,/dashboard,fe fe-home,link,false,false,Dashboard,1,2024-02-28 09:19:48.066788+00,2024-02-28 09:19:48.066788+00
+45128a9f-19c3-4758-8e63-29896a265677,94e07fb7-c0f8-4e29-ab48-7895c33e03fa,/blog,bi bi-journals,link,false,false,Blog,2,2024-02-28 10:02:11.340051+00,2024-02-28 10:02:11.340051+00
+860c37c5-f2e2-413c-a6c0-a9cf0db64232,2e12c576-fe20-4d48-8da2-fa650a1142d5,/menu-management,bi bi-list,sub,false,false,Menu Management,1,2024-03-08 07:36:33.337548+00,2024-03-08 07:36:33.337548+00
+1c6a347f-3558-45dc-8f41-e79e3a76441b,2e12c576-fe20-4d48-8da2-fa650a1142d5,/roles/permissions,bi bi-shield-shaded,link,false,false,Role Permissions,3,2024-03-08 01:55:50.152572+00,2024-03-08 01:55:50.152572+00
+b9059581-e83e-41f3-a464-44e04bde8460,2e12c576-fe20-4d48-8da2-fa650a1142d5,/users,bi bi-person-lock,link,false,false,Users Management,2,2024-03-08 07:57:34.892144+00,2024-03-08 07:57:34.892144+00
