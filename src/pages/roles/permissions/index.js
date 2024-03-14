@@ -42,7 +42,7 @@ function RolesPermissions() {
 
   const fetchPermission = async () => {
     try {
-      const response = await axios.get('/api/roles/permission');
+      const response = await axios.get('/api/utils/permission');
 
       if (response.status === 201) {
         setDataPermission(response.data);
@@ -58,7 +58,7 @@ function RolesPermissions() {
 
   const fetchPath = async () => {
     try {
-      const response = await axios.get('/api/roles/path');
+      const response = await axios.get('/api/utils/path');
 
       if (response.status === 201) {
         setDataPath(response.data);

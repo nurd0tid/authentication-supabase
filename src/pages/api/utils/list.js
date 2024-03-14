@@ -3,7 +3,7 @@ import supabase from "../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+  if (req.method === 'GET') {
     try {
       const cookie = req.cookies.currentUser;
 
@@ -16,17 +16,13 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { oldPhoto } = req.body;
-
-        const { data, error } = await supabase.storage
-        .from('users')
-        .remove(oldPhoto);
+        const { data, error } = await supabase.rpc('get_fn_roles');
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json({ message: 'Successfully removed old photo' }); // Mengubah status code menjadi 200 karena operasi update berhasil
+        res.status(201).json(data);
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }
@@ -35,7 +31,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: 'Internal Server Error' });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
+    res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

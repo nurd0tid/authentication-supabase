@@ -30,7 +30,7 @@ function Users() {
   // Function Show Data
   const fetchRoles = async () => {
     try {
-      const response = await axios.get('/api/roles/list');
+      const response = await axios.get('/api/utils/list');
 
       if (response.status === 201) {
         setRoles(response.data);

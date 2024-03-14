@@ -83,7 +83,7 @@ const Sidebar = () => {
     const fecthMenu = async () => {
       if (roleId) {
         try {
-          const response = await axios.post('/api/menu/list', {
+          const response = await axios.post('/api/utils/sidemenu', {
             sur: roleId,
           });
           setMenuitems(response.data);
