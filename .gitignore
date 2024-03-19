@@ -19,7 +19,6 @@
 # misc
 .DS_Store
 *.pem
-supabase.js
 
 # debug
 npm-debug.log*
