@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     //   { expiresIn: '6h' }
     // );
     const key = new TextEncoder().encode(process.env.JWT_SECRET)
-    const token = await new SignJWT({ sun: user.name, sud: user.id, sur: user.roles.id, role: user.roles.name })
+    const token = await new SignJWT({ sun: user.name, sud: user.id, sur: user.roles.id, role: user.roles.name, photo: user.photo })
       .setProtectedHeader({ alg: 'HS256' }) // Set the algorithm
       .setIssuedAt() // Set the time the token was issued
       .setExpirationTime('6h') // Set the expiration time
