@@ -34,8 +34,8 @@ You can start add enviroment file.
 
 ```bash
 BASE_URL=http://localhost:3000
-SUPABASE_URL=
-SUPABASE_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_KEY=
 JWT_SECRET=
 NEXT_PUBLIC_AVATAR_URL=
 HOST_EMAIL=
@@ -51,8 +51,8 @@ After create enviroment, create file supabase.js in root folder.
 ```javascript
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {

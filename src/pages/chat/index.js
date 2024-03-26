@@ -2,14 +2,29 @@ import PageHeader from '@/shared/layout-components/pageheader/pageHeader'
 import Seo from '@/shared/layout-components/seo/seo'
 import axios from 'axios';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Badge, Button, Card, Col, Dropdown, FormControl, Image, InputGroup, Nav, Row, Tab } from 'react-bootstrap'
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import supabase from '../../../supabase';
+
 
 const Chat = () => {
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
   const [userData, setUserData] = useState(null);
+  const [sideMessage, setSideMessage] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeTab, setActiveTab] = useState(''); // state for active tab
+  const [defaultActiveTab, setDefaultActiveTab] = useState('msg'); // state for default active tab
+  const [initialFetchComplete, setInitialFetchComplete] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState('');
+  const [toThreadId, setToThreadId] = useState('');
+  const [toAssistantId, setToAssistantId] = useState('');
+  const messagesEndRef = useRef(null);
 
   // Fetching Me
   useEffect(() => {
@@ -25,8 +40,209 @@ const Chat = () => {
     fetchData();
   }, []);
 
+  // list message room 
+  useEffect(() => {
+    if (userData) {      
+      const fetchSideMessage = async () => {
+        try {
+          const response = await axios.get('/api/chat/sidemsg', {
+              params: {
+              id: userData?.sud
+            }
+          });
+          if (response.status === 201) {
+            setSideMessage(response.data);
+            setInitialFetchComplete(true);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      };
+  
+      fetchSideMessage();
+    }
+  }, [userData]);
+
+  // content message
+  useEffect(() => {
+    if (selectedRoom) {      
+      const fetchContentMessage = async () => {
+        try {
+          const response = await axios.get('/api/chat/message', {
+              params: {
+              id: selectedRoom
+            }
+          });
+          if (response.status === 201) {
+            setMessages(response.data);
+            setIsTyping(false);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      };
+  
+      fetchContentMessage();
+    }
+  }, [selectedRoom]);
+
+  // realtime message
+  useEffect(() => {
+    if (initialFetchComplete) {
+      const channel = supabase
+        .channel('realtime message')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message' }, handleMessageInserted)
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [initialFetchComplete]);
+
+  const handleMessageInserted = (payload) => {
+    const { new: newMessage } = payload
+    console.log('a', selectedRoom)
+    console.log('b', newMessage.thread_room_id)
+    if (selectedRoom === newMessage.thread_room_id) {
+      setMessages((prevMessage) => [...prevMessage, newMessage])
+      scrollToBottom();
+    }
+  }
+
+  useEffect(() => {
+    if (initialFetchComplete) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  };
+
+  // realtime side message room
+  useEffect(() => {
+    if (initialFetchComplete) {
+      const channel = supabase
+        .channel('realtime thread')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'thread' }, handleRoomInserted)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'thread' }, handleRoomUpdated)
+        .subscribe()
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [initialFetchComplete]);
+
+  const handleRoomInserted = (payload) => {
+    const { new: newRoom } = payload
+    if (newRoom.room_by || newRoom.reciver === userData.id) {
+      setSideMessage((prevRooms) => [...prevRooms, newRoom])
+    }
+  }
+
+  const handleRoomUpdated = (payload) => {
+    const { new: updatedRoom } = payload
+    if (updatedRoom && updatedRoom.last_message && updatedRoom.id) {
+      setSideMessage((prevRooms) => {
+        return prevRooms.map((room) => {
+          if (room.id === updatedRoom.id) {
+            return {
+              ...room,
+              last_message: updatedRoom.last_message,
+              updated_at: updatedRoom.updated_at
+            }
+          }
+          
+          return room
+
+        })
+      })
+    }
+  }
+
+  const handleRoomSelection = (roomId, threadId, assistantsId) => {
+    setSelectedRoom(roomId);
+    setToAssistantId(assistantsId);
+    setToThreadId(threadId);
+  };
+
+  const clickContact = async (reciverName, assistantId) => {
+    const response = await axios.post('/api/chat/create', {
+      room_by: userData?.sud,
+      sender_name: userData?.sun,
+      reciver_name: reciverName,
+      assistant_id: assistantId
+    });
+    if (response.status === 201) {
+      setSelectedRoom(response.data.room_id); // Set selected room to thread_id
+      setActiveTab('msg'); // Set defaultTab to 'msg'
+      setIsTyping(true);
+      setToAssistantId(response.data.assistant_id);
+      setToThreadId(response.data.thread_id);
+    } else {
+      console.log(response)
+    }
+  }
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+    try {
+      setIsLoading(true);
+      setInputText(''); 
+      console.log(toThreadId)
+      const response = await axios.post('/api/chat/sendmsg', { 
+        text: inputText, 
+        sender: 'user', 
+        thread_id: toThreadId, 
+        room_id: selectedRoom,
+        assistant_id:  toAssistantId
+      });
+      if (response.status === 200) {
+        setInputText('');
+        setIsLoading(false);
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      toast.error(error.response.data.message);
+    }
+  };
+
+  function formatOutput(message) {
+  const splitMessage = message.split('\n');
+  const fileDescriptions = splitMessage.slice(0, -2);
+  const footer = splitMessage.slice(-2).join('\n');
+
+  const linkRegex = /(?:\[([^\]]+)\]\()([^)]+)\)/g; // Regex untuk mencocokkan tautan dalam format [teks](URL)
+
+  // Fungsi untuk mengganti tautan dalam pesan
+  const renderMessage = (text) => {
+    return text.replace(linkRegex, (match, text, url) => {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    });
+  };
+
   return (
     <div>
+      <ul>
+        {fileDescriptions.map((fileDescription, index) => (
+          <li key={index} dangerouslySetInnerHTML={{ __html: renderMessage(fileDescription) }} />
+        ))}
+      </ul>
+      <p dangerouslySetInnerHTML={{ __html: renderMessage(footer) }} />
+    </div>
+  );
+}
+
+
+  return (
+    <div>
+      <ToastContainer />
       <Seo title="Chat"/>
       <PageHeader titles="Chat" active="Chat" items={['Apps']} />
       <Row className="row-sm">
@@ -45,7 +261,6 @@ const Chat = () => {
                     </div>
                     <div className="main-chat-msg-name">
                       <h6>{userData?.sun}</h6>
-                      {/* <span className="dot-label bg-success"></span><small className="me-3">Available</small> */}
                     </div>
                   </Card.Body>
 
@@ -56,7 +271,7 @@ const Chat = () => {
                     </InputGroup>
                   </Card.Body>
 
-                  <Tab.Container id="left-tabs-example" defaultActiveKey="msg">
+                  <Tab.Container id="left-tabs-example" activeKey={activeTab || defaultActiveTab} onSelect={(key) => setActiveTab(key)}>
                     <Nav variant="pills" className="px-4" >
                       <Nav.Item>
                         <Nav.Link eventKey="msg">Messages</Nav.Link>
@@ -65,24 +280,31 @@ const Chat = () => {
                         <Nav.Link eventKey="cnts">Contacts</Nav.Link>
                       </Nav.Item>
                     </Nav>
-                    <Tab.Content className=' main-chat-list flex-2'>
+                    <Tab.Content className=' main-chat-list flex-2 mt-2'>
                       <Tab.Pane eventKey="msg">
                         <div className="main-chat-list tab-pane">
-                          <Link className="media selected mt-2" href="#!">
-                            <div className="main-img-user online"><img alt="user9" src={"../../../assets/images/users/9.jpg"} /></div>
-                            <div className="media-body">
-                              <div className="media-contact-name">
-                                <span>Reynante Labares</span> <span>9.40 am</span>
-                              </div>
-                              <p> Nice to meet you </p>
-                            </div>
-                          </Link>
+                          {sideMessage && sideMessage.length > 0 ? (
+                            sideMessage.map((sidemsg, index) => (
+                              <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} onClick={() => handleRoomSelection(sidemsg.id, sidemsg.thread_id, sidemsg.assitants_id)}
+>
+                                <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
+                                <div className="media-body">
+                                  <div className="media-contact-name">
+                                    <span>{sidemsg.reciver_name}</span> <span>{sidemsg.updated_at}</span>
+                                  </div>
+                                  <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '40px'}}/>
+                                </div>
+                              </Link>
+                            ))
+                          ) : (
+                            <p className='text-center text-muted'>No message available.</p>
+                          )}
                         </div>
                       </Tab.Pane>
                       <Tab.Pane eventKey="cnts">
                         <div>
                           <div className="py-4 px-6 fw-bold">A</div>
-                          <div className="d-flex align-items-center media">
+                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', 'asst_fyPH8T7LLMvrR7hmj2uSoEAH')}>
                             <div className="mb-0 me-2">
                               <div className="main-img-user online">
                                 <img alt="user3" src="../../../assets/images/legalnowy.png" />
@@ -117,10 +339,9 @@ const Chat = () => {
               <div className="main-content-app pt-0">
                 <div className="main-content-body main-content-body-chat h-100">
                   <div className="main-chat-header pt-3 d-block d-sm-flex">
-                    <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/1.jpg"} /></div>
+                    <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
                     <div className="main-chat-msg-name mt-2">
-                      <h6>Saul Goodmate</h6>
-                      <span className="dot-label bg-success"></span><small className="me-3">online</small>
+                      <h6>Legalnowy</h6>
                     </div>
                     <Nav>
                       <div className="">
@@ -142,137 +363,78 @@ const Chat = () => {
                   </div>
                   {/* <!-- main-chat-header --> */}
                   <div className="main-chat-body flex-2" id="ChatBody">
-                    <PerfectScrollbar>
+                    <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }}>
                       <div className="content-inner">
-                        <label className="main-chat-time"><span>2 days ago</span></label>
-                        <div className="media chat-left">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/1.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Hey, Jhon Doe 👋<br/>
-                              Saya Legalnowy, asisten AI pribadi Anda. Mari mulai dengan memilih topik atau sampaikan permintaan Anda.<br/>
-                              Apakah ada yang bisa saya bantu hari ini?
-                              <div className='btn-list mt-4'>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">CAN (Code Anything Now)</Link>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">Refactoring Assistant</Link>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">Python Compiller</Link>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">Linux Terminal</Link><br/>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">Back-end developer</Link>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">Swift developer</Link>
-                                <Link href="#!" className="btn btn-outline-primary btn-sm">Front-end developer</Link>
+                        {messages.map((msg, index) => (
+                          <div key={index}>
+                          {msg.role ===  'system' || msg.role === 'assistant' ? (
+                            <div className="media chat-left">
+                              <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
+                              <div className="media-body">
+                                <div className="main-msg-wrapper">
+                                  {isTyping ? (
+                                    <div>
+                                      <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                                      <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                                      <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      {/* <div dangerouslySetInnerHTML={{ __html: msg.content }} /> */}
+                                      {formatOutput(msg.content)}
+                                      {msg.command_type === 0 && (
+                                        <div className='btn-list mt-4'>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">CAN (Code Anything Now)</Link>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Refactoring Assistant</Link>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Python Compiller</Link>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Linux Terminal</Link><br/>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Back-end developer</Link>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Swift developer</Link>
+                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Front-end developer</Link>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
+                                </div>
                               </div>
                             </div>
-                            <div>
-                              <span>9:32 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
+                          ) : (
+                            <div className="media flex-row-reverse chat-right mb-2">
+                              <div className="main-img-user online"><img alt="avatar" src={userData?.photo ? avatarUrl+userData?.photo : "../../../assets/images/users/21.jpg"} /></div>
+                              <div className="media-body">
+                                <div className="main-msg-wrapper">
+                                <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+                                </div>
+                                <div>
+                                  <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
+                                </div>
+                              </div>
                             </div>
+                          )}
                           </div>
-                        </div>
-                        <div className="media flex-row-reverse chat-right">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/21.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Nulla consequat massa quis enim. Donec pede justo, fringilla vel...
-                            </div>
-                            <div className="main-msg-wrapper">
-                              rhoncus ut, imperdiet a, venenatis vitae, justo...
-                            </div>
-                            <div>
-                              <span>9:48 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="media chat-left">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/1.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
-                            </div>
-                            <div>
-                              <span>9:32 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="media flex-row-reverse chat-right">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/21.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor
-                            </div>
-                            <div className="main-msg-wrapper">
-                              <span className="text-dark"><span><i className="fa fa-image fs-14 text-muted pe-2"></i></span><span className="fs-14 mt-1"> Image_attachment.jpg </span>
-                                <i className="fe fe-download mt-3 text-muted ps-2"></i>
-                              </span>
-                            </div>
-                            <div>
-                              <span>11:22 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div>
-                        <label className="main-chat-time"><span>Yesterday</span></label>
-                        <div className="media chat-left">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/1.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
-                            </div>
-                            <div>
-                              <span>9:32 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="media flex-row-reverse chat-right">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/21.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo.
-                            </div>
-                            <div className="main-msg-wrapper">
-                              Nullam dictum felis eu pede mollis pretium
-                            </div>
-                            <div>
-                              <span>9:48 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div><label className="main-chat-time"><span>Today</span></label>
-                        <div className="media chat-left">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/1.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Maecenas tempus, tellus eget condimentum rhoncus
-                            </div>
-                            <div className="main-msg-wrapper">
-                              <img alt="avatar" className="w-10 h-10 me-1" src={"../../../assets/images/media/3.jpg"} />
-                              <img alt="avatar" className="w-10 h-10 me-1" src={"../../../assets/images/media/4.jpg"} />
-                              <img alt="avatar" className="w-10 h-10 me-1" src={"../../../assets/images/media/5.jpg"} />
-                            </div>
-                            <div>
-                              <span>10:12 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="media flex-row-reverse chat-right">
-                          <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/users/21.jpg"} /></div>
-                          <div className="media-body">
-                            <div className="main-msg-wrapper">
-                              Maecenas tempus, tellus eget condimentum rhoncus
-                            </div>
-                            <div className="main-msg-wrapper">
-                              Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus.
-                            </div>
-                            <div>
-                              <span>09:40 am</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
-                            </div>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </PerfectScrollbar>
                   </div>
                   <div className="main-chat-footer">
-                    <input className="form-control" placeholder="Type your message here..." type="text" />
+                    <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />
                     <Link className="nav-link" data-bs-toggle="tooltip" href="" title="Attach a File"><i className="fe fe-paperclip"></i></Link>
-                    <Button className="btn btn-icon  btn-primary brround"><i className="fa fa-paper-plane-o"></i></Button>
-                    <nav className="nav">
-                    </nav>
+                    {isLoading ? (
+                      <div>
+                        <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                        <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                        <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                      </div>
+                    ) : ( 
+                      <>
+                        <Button className="btn btn-icon  btn-primary brround"  onClick={handleSendMessage}><i className="fa fa-paper-plane-o"></i></Button>
+                        <nav className="nav">
+                        </nav>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

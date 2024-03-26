@@ -57,5 +57,6 @@ export const config = {
     '/features/:path*',
     '/roles/:path*',
     '/users/:path*',
+    '/chat/:path*',
   ],
 };
