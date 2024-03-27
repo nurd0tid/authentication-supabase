@@ -8,6 +8,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import supabase from '../../../supabase';
+import Faqs from '../../../components/chat/Faqs';
 
 
 const Chat = () => {
@@ -24,6 +25,7 @@ const Chat = () => {
   const [selectedRoom, setSelectedRoom] = useState('');
   const [toThreadId, setToThreadId] = useState('');
   const [toAssistantId, setToAssistantId] = useState('');
+  const [inittialCommand, setInitialCommand] = useState([]);
   const messagesEndRef = useRef(null);
 
   // Fetching Me
@@ -75,7 +77,6 @@ const Chat = () => {
           });
           if (response.status === 201) {
             setMessages(response.data);
-            setIsTyping(false);
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -98,7 +99,7 @@ const Chat = () => {
         channel.unsubscribe();
       };
     }
-  }, [initialFetchComplete]);
+  }, [initialFetchComplete, selectedRoom]);
 
   const handleMessageInserted = (payload) => {
     const { new: newMessage } = payload
@@ -165,6 +166,7 @@ const Chat = () => {
   }
 
   const handleRoomSelection = (roomId, threadId, assistantsId) => {
+    console.log('asoy geboy', roomId)
     setSelectedRoom(roomId);
     setToAssistantId(assistantsId);
     setToThreadId(threadId);
@@ -180,7 +182,6 @@ const Chat = () => {
     if (response.status === 201) {
       setSelectedRoom(response.data.room_id); // Set selected room to thread_id
       setActiveTab('msg'); // Set defaultTab to 'msg'
-      setIsTyping(true);
       setToAssistantId(response.data.assistant_id);
       setToThreadId(response.data.thread_id);
     } else {
@@ -203,6 +204,7 @@ const Chat = () => {
         assistant_id:  toAssistantId
       });
       if (response.status === 200) {
+        setSelectedRoom(selectedRoom)
         setInputText('');
         setIsLoading(false);
         toast.success(response.data.message);
@@ -214,31 +216,74 @@ const Chat = () => {
   };
 
   function formatOutput(message) {
-  const splitMessage = message.split('\n');
-  const fileDescriptions = splitMessage.slice(0, -2);
-  const footer = splitMessage.slice(-2).join('\n');
+    const splitMessage = message.split('\n');
+    const fileDescriptions = splitMessage.slice(0, -2);
+    const footer = splitMessage.slice(-2).join('\n');
 
-  const linkRegex = /(?:\[([^\]]+)\]\()([^)]+)\)/g; // Regex untuk mencocokkan tautan dalam format [teks](URL)
+    const linkRegex = /(?:\[([^\]]+)\]\((https?:\/\/[^\)]+)\))|(\((https?:\/\/[^\)]+)\))/g;  // Regex untuk mencocokkan tautan dalam format [teks](URL) / () hanya jika ada http atau https
 
-  // Fungsi untuk mengganti tautan dalam pesan
-  const renderMessage = (text) => {
-    return text.replace(linkRegex, (match, text, url) => {
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
-    });
-  };
+    // Fungsi untuk mengganti tautan dalam pesan
+    const renderMessage = (text) => {
+       // Mengganti tautan dengan format <a href="URL" target="_blank" rel="noopener noreferrer">teks</a>
+      text = text.replace(linkRegex, (match, text1, url1, text2, url2) => {
+        if (url1 && text1) {
+          return `<a href="${url1}" target="_blank" rel="noopener noreferrer">${text1}</a>`;
+        } else if (url2) {
+          return `<a href="${url2}" target="_blank" rel="noopener noreferrer">${url2}</a>`;
+        }
+      });
 
-  return (
-    <div>
-      <ul>
-        {fileDescriptions.map((fileDescription, index) => (
-          <li key={index} dangerouslySetInnerHTML={{ __html: renderMessage(fileDescription) }} />
-        ))}
-      </ul>
-      <p dangerouslySetInnerHTML={{ __html: renderMessage(footer) }} />
-    </div>
-  );
-}
+      // Membuat teks yang diapit oleh ** menjadi tebal
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
+      return text;
+      };
+
+    return (
+      <div>
+        <ul>
+          {fileDescriptions.map((fileDescription, index) => (
+            <li key={index} dangerouslySetInnerHTML={{ __html: renderMessage(fileDescription) }} />
+          ))}
+        </ul>
+        <p dangerouslySetInnerHTML={{ __html: renderMessage(footer) }} />
+      </div>
+    );
+  }
+
+  useEffect(() => {     
+      const fetchInitialCommand = async () => {
+        try {
+          const response = await axios.get('/api/chat/command');
+          if (response.status === 201) {
+            setInitialCommand(response.data);;
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      };
+  
+      fetchInitialCommand();
+  }, []);
+
+  const clickCommand = async (text, sender, roomId, commandId) => {
+    try {
+      setIsTyping(true);
+      const response = await axios.post('/api/chat/sendcmd', { 
+        text: text, 
+        sender: sender, 
+        room_id: roomId,
+        command_id:  commandId
+      });
+      if (response.status === 200) {
+        setIsTyping(false);
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      setIsTyping(false);
+      toast.error(error.response.data.message);
+    }
+  }
 
   return (
     <div>
@@ -372,29 +417,18 @@ const Chat = () => {
                               <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
                               <div className="media-body">
                                 <div className="main-msg-wrapper">
-                                  {isTyping ? (
                                     <div>
-                                      <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
-                                      <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
-                                      <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
-                                    </div>
-                                  ) : (
-                                    <div>
-                                      {/* <div dangerouslySetInnerHTML={{ __html: msg.content }} /> */}
                                       {formatOutput(msg.content)}
-                                      {msg.command_type === 0 && (
+                                      {msg.command_id ? (
+                                        <Faqs commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
+                                        ) : (
                                         <div className='btn-list mt-4'>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">CAN (Code Anything Now)</Link>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Refactoring Assistant</Link>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Python Compiller</Link>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Linux Terminal</Link><br/>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Back-end developer</Link>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Swift developer</Link>
-                                          <Link href="#!" className="btn btn-outline-primary btn-sm">Front-end developer</Link>
+                                          {inittialCommand.map((cmd, index) => (
+                                              <Link href="#!" className="btn btn-outline-primary btn-sm" onClick={() => clickCommand(cmd.title, 'user', selectedRoom, cmd.id)} key={index}>{cmd.title}</Link>
+                                          ))}
                                         </div>
                                       )}
                                     </div>
-                                  )}
                                 </div>
                                 <div>
                                   <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
@@ -416,6 +450,22 @@ const Chat = () => {
                           )}
                           </div>
                         ))}
+                        {isTyping && (
+                          <div>
+                            <div className="media chat-left mt-2">
+                              <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
+                              <div className="media-body">
+                                <div className="main-msg-wrapper">
+                                  <div>
+                                    <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                                    <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                                    <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </PerfectScrollbar>
                   </div>
