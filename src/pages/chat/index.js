@@ -349,7 +349,7 @@ const Chat = () => {
                       <Tab.Pane eventKey="cnts">
                         <div>
                           <div className="py-4 px-6 fw-bold">A</div>
-                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', 'asst_fyPH8T7LLMvrR7hmj2uSoEAH')}>
+                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', 'your assistant id')}>
                             <div className="mb-0 me-2">
                               <div className="main-img-user online">
                                 <img alt="user3" src="../../../assets/images/legalnowy.png" />
@@ -419,14 +419,17 @@ const Chat = () => {
                                 <div className="main-msg-wrapper">
                                     <div>
                                       {formatOutput(msg.content)}
-                                      {msg.command_id ? (
+                                      {msg.command_id && msg.command_show ? (
                                         <Faqs commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
-                                        ) : (
-                                        <div className='btn-list mt-4'>
-                                          {inittialCommand.map((cmd, index) => (
-                                              <Link href="#!" className="btn btn-outline-primary btn-sm" onClick={() => clickCommand(cmd.title, 'user', selectedRoom, cmd.id)} key={index}>{cmd.title}</Link>
-                                          ))}
-                                        </div>
+                                        ) : msg.command_show && (
+                                          <div>
+                                            <div className='btn-list mt-4'>
+                                              {inittialCommand.map((cmd, index) => (
+                                                  <Link href="#!" className="btn btn-outline-primary btn-sm" onClick={() => clickCommand(cmd.title, 'user', selectedRoom, cmd.id)} key={index}>{cmd.title}</Link>
+                                              ))}
+                                            </div>
+                                            <p className='mt-4'>Tidak puas dengan opsi yang ada? kamu dapat menanyakan secara langsung kepada legalnowy dengan mengetikan pertanyaan loh.</p>
+                                          </div>
                                       )}
                                     </div>
                                 </div>

@@ -64,6 +64,7 @@ function Faqs(props) {
           <Link href="#!" className="btn btn-outline-primary btn-sm" key={index} onClick={() => clickCommand(qs.question, 'user', qs.id)}>{qs.question}</Link>
         ))}
       </div>
+      <p className='mt-4'>Tidak puas dengan opsi yang ada? kamu dapat menanyakan secara langsung kepada legalnowy dengan mengetikan pertanyaan loh.</p>
     </div>
   )
 }

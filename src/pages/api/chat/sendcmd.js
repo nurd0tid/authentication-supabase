@@ -25,7 +25,8 @@ export default async function handler(req, res) {
           new_content: text,
           new_role: sender,
           new_type_chat: 'text',
-          new_command_id: null
+          new_command_id: null,
+          new_command_show: false,
         });
 
         if (error) throw new Error(error.message);
@@ -38,7 +39,8 @@ export default async function handler(req, res) {
           new_content: 'Berikut beberapa topik pertanyaaan yang sesuai permintaan Anda. Dari opsi dibawah ini, silahkan pilih opsi sesuai dengan masalah yang dihadapi.',
           new_role: 'system',
           new_type_chat: 'text',
-          new_command_id: command_id
+          new_command_id: command_id,
+          new_command_show: true,
         });
 
         if (error) throw new Error(errorSystem.message);
