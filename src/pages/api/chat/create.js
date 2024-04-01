@@ -34,7 +34,7 @@ export default async function handler(req, res) {
           new_role: 'assistant',
           new_content: `Hey, ${sender_name} 👋<br/> Saya Legalnowy, asisten AI pribadi Anda. Mari mulai dengan memilih topik atau sampaikan permintaan Anda.<br/> Apakah ada yang bisa saya bantu hari ini?`,
           new_type_chat: 'text',
-          new_command_show: true,
+          new_command_type: 0
         });
 
         if (error) {
