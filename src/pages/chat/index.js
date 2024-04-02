@@ -9,6 +9,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import supabase from '../../../supabase';
 import Faqs from '../../../components/chat/Faqs';
+import ListCommand from '../../../components/chat/ListCommand';
 
 
 const Chat = () => {
@@ -349,7 +350,7 @@ const Chat = () => {
                       <Tab.Pane eventKey="cnts">
                         <div>
                           <div className="py-4 px-6 fw-bold">A</div>
-                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', 'your assistant id')}>
+                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', 'asst_fyPH8T7LLMvrR7hmj2uSoEAH')}>
                             <div className="mb-0 me-2">
                               <div className="main-img-user online">
                                 <img alt="user3" src="../../../assets/images/legalnowy.png" />
@@ -472,6 +473,7 @@ const Chat = () => {
                       </div>
                     </PerfectScrollbar>
                   </div>
+                  <ListCommand/>
                   <div className="main-chat-footer">
                     <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />
                     <Link className="nav-link" data-bs-toggle="tooltip" href="" title="Attach a File"><i className="fe fe-paperclip"></i></Link>
