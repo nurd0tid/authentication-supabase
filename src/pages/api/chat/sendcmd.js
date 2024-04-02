@@ -27,6 +27,7 @@ export default async function handler(req, res) {
           new_type_chat: 'text',
           new_command_id: null,
           new_command_show: false,
+          new_initial_command: null,
         });
 
         if (error) throw new Error(error.message);
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
           new_type_chat: 'text',
           new_command_id: command_id,
           new_command_show: true,
+          new_initial_command: 1,
         });
 
         if (error) throw new Error(errorSystem.message);

@@ -52,10 +52,10 @@ function ListCommand(props) {
           maxHeight: '60px',
         }}
       >
+        <span href='#' className='btn btn-outline-primary btn-sm'>Topik</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Bantuan</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Chat Assistant</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Lorem Ipsum</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Lorem Ipsum</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Lorem Ipsum</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Lorem Ipsum</span>

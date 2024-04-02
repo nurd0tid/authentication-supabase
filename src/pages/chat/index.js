@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import supabase from '../../../supabase';
 import Faqs from '../../../components/chat/Faqs';
 import ListCommand from '../../../components/chat/ListCommand';
+import CommandInChat from '../../../components/chat/CommandInChat';
 
 
 const Chat = () => {
@@ -26,7 +27,6 @@ const Chat = () => {
   const [selectedRoom, setSelectedRoom] = useState('');
   const [toThreadId, setToThreadId] = useState('');
   const [toAssistantId, setToAssistantId] = useState('');
-  const [inittialCommand, setInitialCommand] = useState([]);
   const messagesEndRef = useRef(null);
 
   // Fetching Me
@@ -174,19 +174,22 @@ const Chat = () => {
   };
 
   const clickContact = async (reciverName, assistantId) => {
-    const response = await axios.post('/api/chat/create', {
-      room_by: userData?.sud,
-      sender_name: userData?.sun,
-      reciver_name: reciverName,
-      assistant_id: assistantId
-    });
-    if (response.status === 201) {
-      setSelectedRoom(response.data.room_id); // Set selected room to thread_id
-      setActiveTab('msg'); // Set defaultTab to 'msg'
-      setToAssistantId(response.data.assistant_id);
-      setToThreadId(response.data.thread_id);
-    } else {
-      console.log(response)
+    try {     
+      const response = await axios.post('/api/chat/create', {
+        room_by: userData?.sud,
+        sender_name: userData?.sun,
+        reciver_name: reciverName,
+        assistant_id: assistantId
+      });
+      if (response.status === 201) {
+        setSelectedRoom(response.data.room_id); // Set selected room to thread_id
+        setActiveTab('msg'); // Set defaultTab to 'msg'
+        setToAssistantId(response.data.assistant_id);
+        setToThreadId(response.data.thread_id);
+        toast.success('Create room successfully')
+      }
+    } catch (error) {
+      toast.error('Something when wrong!')
     }
   }
 
@@ -250,40 +253,6 @@ const Chat = () => {
         <p dangerouslySetInnerHTML={{ __html: renderMessage(footer) }} />
       </div>
     );
-  }
-
-  useEffect(() => {     
-      const fetchInitialCommand = async () => {
-        try {
-          const response = await axios.get('/api/chat/command');
-          if (response.status === 201) {
-            setInitialCommand(response.data);;
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      };
-  
-      fetchInitialCommand();
-  }, []);
-
-  const clickCommand = async (text, sender, roomId, commandId) => {
-    try {
-      setIsTyping(true);
-      const response = await axios.post('/api/chat/sendcmd', { 
-        text: text, 
-        sender: sender, 
-        room_id: roomId,
-        command_id:  commandId
-      });
-      if (response.status === 200) {
-        setIsTyping(false);
-        toast.success(response.data.message);
-      }
-    } catch (error) {
-      setIsTyping(false);
-      toast.error(error.response.data.message);
-    }
   }
 
   return (
@@ -350,7 +319,7 @@ const Chat = () => {
                       <Tab.Pane eventKey="cnts">
                         <div>
                           <div className="py-4 px-6 fw-bold">A</div>
-                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', 'asst_fyPH8T7LLMvrR7hmj2uSoEAH')}>
+                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', process.env.NEXT_PUBLIC_ASSISTANT_ID)}>
                             <div className="mb-0 me-2">
                               <div className="main-img-user online">
                                 <img alt="user3" src="../../../assets/images/legalnowy.png" />
@@ -420,17 +389,10 @@ const Chat = () => {
                                 <div className="main-msg-wrapper">
                                     <div>
                                       {formatOutput(msg.content)}
-                                      {msg.command_id && msg.command_show ? (
-                                        <Faqs commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
-                                        ) : msg.command_show && (
-                                          <div>
-                                            <div className='btn-list mt-4'>
-                                              {inittialCommand.map((cmd, index) => (
-                                                  <Link href="#!" className="btn btn-outline-primary btn-sm" onClick={() => clickCommand(cmd.title, 'user', selectedRoom, cmd.id)} key={index}>{cmd.title}</Link>
-                                              ))}
-                                            </div>
-                                            <p className='mt-4'>Tidak puas dengan opsi yang ada? kamu dapat menanyakan secara langsung kepada legalnowy dengan mengetikan pertanyaan loh.</p>
-                                          </div>
+                                      {msg.command_id && msg.command_show && msg.initial_command === 1 ? (
+                                          <Faqs commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
+                                        ) : msg.command_show && msg.initial_command === 0 && (
+                                          <CommandInChat roomId={selectedRoom} setIsTyping={setIsTyping}/>
                                       )}
                                     </div>
                                 </div>

@@ -6,7 +6,7 @@ Tutorial for basic using supabase, you can check youtube :).
 
 This, sample how to learn simple :
 
-### Crud Nextjs + JWT (Json Web Token) + Layouting/Templating + Role Management (RBAC - ACL) (Comming Soon) + V2L ( Verify Email ) With OTP Nodemailer ( if field users tow_factor : true )
+### Crud Nextjs + JWT (Json Web Token) + Layouting/Templating + Role Management (RBAC - ACL) (Comming Soon) + V2L ( Verify Email ) With OTP Nodemailer ( If Field Users Two_Factor : True ) + Integration Open AI Assistant for chatting with system credit.
 
 First, install package:
 
