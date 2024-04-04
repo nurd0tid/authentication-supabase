@@ -9,24 +9,25 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import supabase from '../../../supabase';
 import Faqs from '../../../components/chat/Faqs';
-import ListCommand from '../../../components/chat/ListCommand';
-import CommandInChat from '../../../components/chat/CommandInChat';
+import CommandInChat from '../../../components/chat/command/CommandInChat';
+import CommandInChatSingle from '../../../components/chat/command/CommandInChatSingle';
+import CommandListBottom from '../../../components/chat/command/CommandListBottom';
+import LeftChat from '../../../components/chat/LeftChat';
 
 
 const Chat = () => {
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
   const [userData, setUserData] = useState(null);
-  const [sideMessage, setSideMessage] = useState([]);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [activeTab, setActiveTab] = useState(''); // state for active tab
-  const [defaultActiveTab, setDefaultActiveTab] = useState('msg'); // state for default active tab
   const [initialFetchComplete, setInitialFetchComplete] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState('');
   const [toThreadId, setToThreadId] = useState('');
   const [toAssistantId, setToAssistantId] = useState('');
+  const [typeChat, setTypeChat] = useState('');
+  const [userCredit, setUserCredit] = useState(0);
   const messagesEndRef = useRef(null);
 
   // Fetching Me
@@ -43,28 +44,47 @@ const Chat = () => {
     fetchData();
   }, []);
 
-  // list message room 
+  // Realtime Credit User
   useEffect(() => {
     if (userData) {      
-      const fetchSideMessage = async () => {
+      const fetchCreditUser = async () => {
         try {
-          const response = await axios.get('/api/chat/sidemsg', {
+          const response = await axios.get('/api/chat/credit', {
               params: {
               id: userData?.sud
             }
           });
           if (response.status === 201) {
-            setSideMessage(response.data);
-            setInitialFetchComplete(true);
+            setUserCredit(response.data);
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
       };
   
-      fetchSideMessage();
+      fetchCreditUser();
     }
   }, [userData]);
+
+  useEffect(() => {
+    if (userData) {
+      const channel = supabase
+        .channel('realtime users')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, handleCreditUpdated)
+        .subscribe()
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [userData]);
+
+  const handleCreditUpdated = (payload) => {
+    const { new: updatedCredit } = payload
+    if (updatedCredit.id === userData?.sud) {
+      setUserCredit(updatedCredit.credit)
+    }
+  }
 
   // content message
   useEffect(() => {
@@ -104,8 +124,6 @@ const Chat = () => {
 
   const handleMessageInserted = (payload) => {
     const { new: newMessage } = payload
-    console.log('a', selectedRoom)
-    console.log('b', newMessage.thread_room_id)
     if (selectedRoom === newMessage.thread_room_id) {
       setMessages((prevMessage) => [...prevMessage, newMessage])
       scrollToBottom();
@@ -124,95 +142,51 @@ const Chat = () => {
     }
   };
 
-  // realtime side message room
-  useEffect(() => {
-    if (initialFetchComplete) {
-      const channel = supabase
-        .channel('realtime thread')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'thread' }, handleRoomInserted)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'thread' }, handleRoomUpdated)
-        .subscribe()
-
-      return () => {
-        channel.unsubscribe();
-      };
-    }
-  }, [initialFetchComplete]);
-
-  const handleRoomInserted = (payload) => {
-    const { new: newRoom } = payload
-    if (newRoom.room_by || newRoom.reciver === userData.id) {
-      setSideMessage((prevRooms) => [...prevRooms, newRoom])
-    }
-  }
-
-  const handleRoomUpdated = (payload) => {
-    const { new: updatedRoom } = payload
-    if (updatedRoom && updatedRoom.last_message && updatedRoom.id) {
-      setSideMessage((prevRooms) => {
-        return prevRooms.map((room) => {
-          if (room.id === updatedRoom.id) {
-            return {
-              ...room,
-              last_message: updatedRoom.last_message,
-              updated_at: updatedRoom.updated_at
-            }
-          }
-          
-          return room
-
-        })
-      })
-    }
-  }
-
-  const handleRoomSelection = (roomId, threadId, assistantsId) => {
-    console.log('asoy geboy', roomId)
-    setSelectedRoom(roomId);
-    setToAssistantId(assistantsId);
-    setToThreadId(threadId);
-  };
-
-  const clickContact = async (reciverName, assistantId) => {
-    try {     
-      const response = await axios.post('/api/chat/create', {
-        room_by: userData?.sud,
-        sender_name: userData?.sun,
-        reciver_name: reciverName,
-        assistant_id: assistantId
-      });
-      if (response.status === 201) {
-        setSelectedRoom(response.data.room_id); // Set selected room to thread_id
-        setActiveTab('msg'); // Set defaultTab to 'msg'
-        setToAssistantId(response.data.assistant_id);
-        setToThreadId(response.data.thread_id);
-        toast.success('Create room successfully')
-      }
-    } catch (error) {
-      toast.error('Something when wrong!')
-    }
-  }
-
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
     try {
       setIsLoading(true);
       setInputText(''); 
-      console.log(toThreadId)
-      const response = await axios.post('/api/chat/sendmsg', { 
-        text: inputText, 
-        sender: 'user', 
-        thread_id: toThreadId, 
-        room_id: selectedRoom,
-        assistant_id:  toAssistantId
-      });
-      if (response.status === 200) {
-        setSelectedRoom(selectedRoom)
-        setInputText('');
-        setIsLoading(false);
-        toast.success(response.data.message);
+      if (typeChat === 0) {
+        const response = await axios.post('/api/chat/sending/bot', { 
+          text: inputText, 
+          sender: 'user', 
+          room_id: selectedRoom,
+        });
+        if (response.status === 200) {
+          setSelectedRoom(selectedRoom)
+          setInputText('');
+          setIsLoading(false);
+          toast.success(response.data.message);
+        }
+      } else if(typeChat === 1) {
+        const remainingCredit = userCredit - 5;
+        const status = remainingCredit >= 0;
+        const finalCredit = status ? remainingCredit : 0;
+
+        const response = await axios.post('/api/chat/sending/ai', { 
+          text: inputText, 
+          sender: 'user', 
+          thread_id: toThreadId, 
+          room_id: selectedRoom,
+          assistant_id:  toAssistantId,
+          status: status,
+          credit: finalCredit,
+          userId: userData?.sud
+        });
+        if (response.status === 200) {
+          setInputText('');
+          setIsLoading(false);
+          toast.success(response.data.message);
+        } else if (response.status === 201) {
+          setInputText('');
+          setIsLoading(false);
+          setTypeChat(response.data.type_chat);
+          toast.warning(response.data.message);
+        }
       }
+      
     } catch (error) {
       setIsLoading(false);
       toast.error(error.response.data.message);
@@ -261,93 +235,17 @@ const Chat = () => {
       <Seo title="Chat"/>
       <PageHeader titles="Chat" active="Chat" items={['Apps']} />
       <Row className="row-sm">
-        <Col sm={12} md={12} lg={12} xxl={4}>
-          <Card className="overflow-hidden">
-            <div className="main-content-app pt-0 main-chat-2">
-              <PerfectScrollbar>
-                <div className="main-content-left main-content-left-chat">
-                  <Card.Body className="d-flex align-items-center">
-                    <div className="main-img-user online">
-                      {userData && userData.photo ? (
-                          <img alt="avatar" src={avatarUrl+userData.photo} />
-                        ) : (
-                          <div className="avatar avatar-md brround bg-primary-transparent text-primary">{userData?.sun.trim().charAt(0)}</div>
-                      )}
-                    </div>
-                    <div className="main-chat-msg-name">
-                      <h6>{userData?.sun}</h6>
-                    </div>
-                  </Card.Body>
-
-                  <Card.Body>
-                    <InputGroup>
-                      <FormControl type="text" placeholder="Search ..." />
-                      <Button variant="primary" className="input-group-text">Search</Button>
-                    </InputGroup>
-                  </Card.Body>
-
-                  <Tab.Container id="left-tabs-example" activeKey={activeTab || defaultActiveTab} onSelect={(key) => setActiveTab(key)}>
-                    <Nav variant="pills" className="px-4" >
-                      <Nav.Item>
-                        <Nav.Link eventKey="msg">Messages</Nav.Link>
-                      </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link eventKey="cnts">Contacts</Nav.Link>
-                      </Nav.Item>
-                    </Nav>
-                    <Tab.Content className=' main-chat-list flex-2 mt-2'>
-                      <Tab.Pane eventKey="msg">
-                        <div className="main-chat-list tab-pane">
-                          {sideMessage && sideMessage.length > 0 ? (
-                            sideMessage.map((sidemsg, index) => (
-                              <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} onClick={() => handleRoomSelection(sidemsg.id, sidemsg.thread_id, sidemsg.assitants_id)}
->
-                                <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
-                                <div className="media-body">
-                                  <div className="media-contact-name">
-                                    <span>{sidemsg.reciver_name}</span> <span>{sidemsg.updated_at}</span>
-                                  </div>
-                                  <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '40px'}}/>
-                                </div>
-                              </Link>
-                            ))
-                          ) : (
-                            <p className='text-center text-muted'>No message available.</p>
-                          )}
-                        </div>
-                      </Tab.Pane>
-                      <Tab.Pane eventKey="cnts">
-                        <div>
-                          <div className="py-4 px-6 fw-bold">A</div>
-                          <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', process.env.NEXT_PUBLIC_ASSISTANT_ID)}>
-                            <div className="mb-0 me-2">
-                              <div className="main-img-user online">
-                                <img alt="user3" src="../../../assets/images/legalnowy.png" />
-                              </div>
-                            </div>
-                            <div className="align-items-center justify-content-between">
-                              <div className="media-body ms-2">
-                                <div className="media-contact-name">
-                                  <span>Legalnowy</span>
-                                  <span></span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="ms-auto">
-                              <i className="contact-status text-primary fe fe-message-square me-2"></i>
-                              <i className="contact-status text-success fe fe-phone-call me-2"></i>
-                              <i className="contact-status text-danger fe fe-video me-2"></i>
-                            </div>
-                          </div>
-                        </div>
-                    </Tab.Pane>
-                    </Tab.Content>
-                  </Tab.Container>
-                </div>
-              </PerfectScrollbar>
-            </div>
-          </Card>
-        </Col>
+        <LeftChat 
+          userData={userData} 
+          userCredit={userCredit}
+          selectedRoom={selectedRoom}
+          initialFetchComplete={initialFetchComplete}
+          setSelectedRoom={setSelectedRoom}
+          setToAssistantId={setToAssistantId}
+          setToThreadId={setToThreadId}
+          setTypeChat={setTypeChat}
+          setInitialFetchComplete={setInitialFetchComplete}
+        />
         {selectedRoom ? (
           <Col sm={12} md={12} lg={12} xxl={8}>
             <Card>
@@ -383,7 +281,7 @@ const Chat = () => {
                         {messages.map((msg, index) => (
                           <div key={index}>
                           {msg.role ===  'system' || msg.role === 'assistant' ? (
-                            <div className="media chat-left">
+                            <div className="media chat-left mb-2">
                               <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
                               <div className="media-body">
                                 <div className="main-msg-wrapper">
@@ -391,8 +289,12 @@ const Chat = () => {
                                       {formatOutput(msg.content)}
                                       {msg.command_id && msg.command_show && msg.initial_command === 1 ? (
                                           <Faqs commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
-                                        ) : msg.command_show && msg.initial_command === 0 && (
+                                      ) : msg.command_show && msg.initial_command === 0 ? (
                                           <CommandInChat roomId={selectedRoom} setIsTyping={setIsTyping}/>
+                                      ) : msg.command_show && msg.initial_command === 2 ? (
+                                          <CommandInChatSingle roomId={selectedRoom} setIsTyping={setIsTyping} commandId={msg.command_id}/>
+                                      ) : (
+                                          <></>
                                       )}
                                     </div>
                                 </div>
@@ -435,7 +337,16 @@ const Chat = () => {
                       </div>
                     </PerfectScrollbar>
                   </div>
-                  <ListCommand/>
+                  <CommandListBottom 
+                    typeChat={typeChat} 
+                    credit={userCredit} 
+                    roomId={selectedRoom} 
+                    senderName={userData?.sun} 
+                    userId={userData?.sud}
+                    setToThreadId={setToThreadId}
+                    setToAssistantId={setToAssistantId}
+                    setTypeChat={setTypeChat}
+                  />
                   <div className="main-chat-footer">
                     <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />
                     <Link className="nav-link" data-bs-toggle="tooltip" href="" title="Attach a File"><i className="fe fe-paperclip"></i></Link>

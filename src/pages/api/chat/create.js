@@ -1,11 +1,9 @@
 import supabase from "../../../../supabase";
 import checkPermission from "@/pages/utils/auth/checkPermission";
 import verifyToken from "@/pages/utils/auth/verifyToken";
-import OpenAI from 'openai';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     try {
       const cookie = req.cookies.currentUser;
@@ -19,14 +17,13 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const thread = await openai.beta.threads.create();
 
-        const { room_by, sender_name, assistant_id, reciver_name, } = req.body;
+        const { room_by, sender_name, reciver_name, } = req.body;
 
         const { data, error } = await supabase.rpc('create_fn_chat', {
           new_room_by: room_by,
-          new_assistants_id: assistant_id,
-          new_thread_id: thread.id,
+          // new_assistants_id: assistant_id,
+          // new_thread_id: thread.id,
           new_reciver: null,
           new_reciver_name: reciver_name,
           new_reciver_photo: null,
