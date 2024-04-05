@@ -83,6 +83,7 @@ const Header = ({ localVaraiable }) => {
   const [searchval, setsearchval] = useState("Type something");
   const [searchcolor, setsearchcolor] = useState("text-dark");
   const [NavData, setNavData] = useState([]);
+  const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -286,8 +287,11 @@ const Header = ({ localVaraiable }) => {
                     {/* Profile  */}
                     <Dropdown className="profile-1">
                       <Dropdown.Toggle variant='' className="nav-link leading-none d-flex no-caret">
-                        <img src={`${process.env.NODE_ENV === 'production'? basePath : ''}/assets/images/users/21.jpg`}alt="profile-user"
-                          className="avatar  profile-user brround cover-image" />
+                        {userData?.photo ? (
+                            <img alt="avatar" src={avatarUrl+userData?.hoto} />
+                          ) : (
+                            <div className="avatar avatar-md brround bg-primary-transparent text-primary">{userData?.sun.trim().charAt(0)}</div>
+                          )}
                       </Dropdown.Toggle>
                       <Dropdown.Menu className="dropdown-menu-end dropdown-menu-arrow">
                         <div className="drop-heading">

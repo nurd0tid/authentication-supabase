@@ -71,7 +71,9 @@ function ListCmd(props) {
     try {     
       const response = await axios.post('/api/chat/fiture/endchat', {
         room_id: roomId,
-        typeChat: typeChat
+        typeChat: typeChat,
+        bot_name: reciverName,
+        bot_photo: reciverPhoto
       });
       if (response.status === 200) {
         setTypeChat(response.data.type_chat);

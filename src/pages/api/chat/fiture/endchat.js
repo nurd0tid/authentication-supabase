@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { room_id, typeChat } = req.body;
+        const { room_id, typeChat, bot_name, bot_photo } = req.body;
 
         if (typeChat === 1) {
           const { data, error } = await supabase.rpc('create_fn_end_chat', {
@@ -26,7 +26,9 @@ export default async function handler(req, res) {
             Saya harap setiap jawaban saya membantu kamu, jangan sungkan untuk bertanya lagi di lain waktu.
             `,
             new_role: 'system',
-            new_type_chat: 'text'
+            new_type_chat: 'text',
+            new_sender_name: bot_name,
+            new_sender_photo: bot_photo,
           });
           if (error) throw new Error(error.message);
 
@@ -41,7 +43,9 @@ export default async function handler(req, res) {
             Saya harap setiap jawaban saya membantu kamu, jangan sungkan untuk bertanya lagi di lain waktu.
             `,
             new_role: 'system',
-            new_type_chat: 'text'
+            new_type_chat: 'text',
+            new_sender_name: bot_name,
+            new_sender_photo: bot_photo,
           });
           if (error) throw new Error(error.message);
 
