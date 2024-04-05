@@ -19,6 +19,8 @@ function LeftChat(props) {
     setInitialFetchComplete,
     initialFetchComplete
   } = props
+  const avatarContactUrl = process.env.NEXT_PUBLIC_AVATAR_CONTACT_URL;
+  const [dataContact, setDataContact] = useState([]);
   const [activeTab, setActiveTab] = useState(''); // state for active tab
   const [defaultActiveTab, setDefaultActiveTab] = useState('msg'); // state for default active tab
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
@@ -45,6 +47,21 @@ function LeftChat(props) {
       fetchSideMessage();
     }
   }, [userData]);
+
+  useEffect(() => {  
+    const fetchContact = async () => {
+      try {
+        const response = await axios.get('/api/chat/contact');
+        if (response.status === 201) {
+          setDataContact(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchContact();
+  }, []);
 
     // realtime side message room
   useEffect(() => {
@@ -173,27 +190,36 @@ function LeftChat(props) {
                   </Tab.Pane>
                   <Tab.Pane eventKey="cnts">
                     <div>
-                      <div className="py-4 px-6 fw-bold">A</div>
-                      <div className="d-flex align-items-center media" onClick={() => clickContact('Legalnowy', process.env.NEXT_PUBLIC_ASSISTANT_ID)}>
-                        <div className="mb-0 me-2">
-                          <div className="main-img-user online">
-                            <img alt="user3" src="../../../assets/images/legalnowy.png" />
+                      {dataContact && dataContact.length > 0 ? (
+                        dataContact.map((contact, index) => (
+                        <div className="d-flex align-items-center media" onClick={() => clickContact(contact.group_name, contact.ai_group)} key={index}>
+                          <div className="mb-0 me-2">
+                            {contact.group_photo ? (
+                              <div className="main-img-user">
+                                <img alt="user3" src={avatarContactUrl+contact.group_photo} />
+                              </div>
+                            ) : (
+                              <span className="avatar avatar-md brround bg-danger-transparent text-danger">{contact.group_name.charAt(0)}</span>
+                            )}
                           </div>
-                        </div>
-                        <div className="align-items-center justify-content-between">
-                          <div className="media-body ms-2">
-                            <div className="media-contact-name">
-                              <span>Legalnowy</span>
-                              <span></span>
+                          <div className="align-items-center justify-content-between">
+                            <div className="media-body ms-2">
+                              <div className="media-contact-name">
+                                <span>{contact.group_name}</span>
+                                <span></span>
+                              </div>
                             </div>
                           </div>
+                          {/* <div className="ms-auto">
+                            <i className="contact-status text-primary fe fe-message-square me-2"></i>
+                            <i className="contact-status text-success fe fe-phone-call me-2"></i>
+                            <i className="contact-status text-danger fe fe-video me-2"></i>
+                          </div> */}
                         </div>
-                        <div className="ms-auto">
-                          <i className="contact-status text-primary fe fe-message-square me-2"></i>
-                          <i className="contact-status text-success fe fe-phone-call me-2"></i>
-                          <i className="contact-status text-danger fe fe-video me-2"></i>
-                        </div>
-                      </div>
+                        ))
+                      ) : (
+                        <p className='text-center text-muted'>No contact available.</p>
+                      )}
                     </div>
                 </Tab.Pane>
                 </Tab.Content>
