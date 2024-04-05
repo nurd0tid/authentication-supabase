@@ -118,19 +118,6 @@ function ListCmd(props) {
         <span href='#' className='btn btn-outline-primary btn-sm'>Topik</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Bantuan</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
         <span href='#' className='btn btn-outline-primary btn-sm' onClick={handleAssistant}>Chat Assistant</span>
       </div>
     </div>
