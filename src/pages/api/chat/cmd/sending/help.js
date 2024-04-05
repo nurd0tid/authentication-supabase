@@ -1,4 +1,4 @@
-import supabase from "../../../../supabase";
+import supabase from "../../../../../../supabase";
 import checkPermission from "@/pages/utils/auth/checkPermission";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
@@ -17,33 +17,29 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { text, sender, room_id, question_id } = req.body;
+        const { text, sender, room_id, command_id, } = req.body;
 
         // Insert original message into Supabase
-        const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_question', {
+        const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_cmd_help', {
           new_thread_room_id: room_id,
           new_content: text,
           new_role: sender,
-          new_type_chat: 'text',
-          new_command_id: null
+          new_type_chat: 'text'
         });
 
         if (error) throw new Error(error.message);
 
         res.status(200).json({ message: 'Successfully sending message!' });
 
-        // get answer question
-        const getQuestion = await supabase.rpc('get_fn_question', {
-          by_id: question_id
-        });
-
         // Insert original message into Supabase
-        const { data: insertedMessageSystem, errorSystem } = await supabase.rpc('create_fn_send_question', {
+        const { data: insertedMessageSystem, errorSystem } = await supabase.rpc('create_fn_send_cmd_help_reply', {
           new_thread_room_id: room_id,
-          new_content: getQuestion.data[0].answer,
+          new_content: 'Berikut beberapa topik pertanyaaan yang sesuai permintaan Anda. Dari opsi dibawah ini, silahkan pilih opsi sesuai dengan masalah yang dihadapi.',
           new_role: 'system',
           new_type_chat: 'text',
-          new_command_id: null
+          new_command_id: command_id,
+          new_command_show: true,
+          new_initial_command: 1,
         });
 
         if (error) throw new Error(errorSystem.message);

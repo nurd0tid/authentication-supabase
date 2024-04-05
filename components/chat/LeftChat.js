@@ -104,10 +104,8 @@ function LeftChat(props) {
         assistant_id: assistantId
       });
       if (response.status === 201) {
-        setSelectedRoom(response.data.room_id); // Set selected room to thread_id
-        setActiveTab('msg'); // Set defaultTab to 'msg'
-        // setToAssistantId(response.data.assistant_id);
-        // setToThreadId(response.data.thread_id);
+        setSelectedRoom(response.data.room_id);
+        setActiveTab('msg');
         setTypeChat(response.data.type_chat);
         toast.success('Create room successfully')
       }

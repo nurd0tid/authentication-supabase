@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import Link from 'next/link';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-function CommandInChat(props) {
+function InitialCmd(props) {
   const [data, setData] = useState([]);
   const {
     roomId,
@@ -15,8 +13,8 @@ function CommandInChat(props) {
   useEffect(() => {     
       const fetchData = async () => {
         try {
-          const response = await axios.get('/api/chat/command');
-          if (response.status === 201) {
+          const response = await axios.get('/api/chat/cmd/get/initial');
+          if (response.status === 200) {
             setData(response.data);;
           }
         } catch (error) {
@@ -30,7 +28,7 @@ function CommandInChat(props) {
   const clickCommand = async (text, sender, commandId) => {
     try {
       setIsTyping(true);
-      const response = await axios.post('/api/chat/sendcmd', { 
+      const response = await axios.post('/api/chat/cmd/sending/initial', { 
         text: text, 
         sender: sender, 
         room_id: roomId,
@@ -38,11 +36,11 @@ function CommandInChat(props) {
       });
       if (response.status === 200) {
         setIsTyping(false);
-        toast.success(response.data.message);
+        console.log(response.data.message);
       }
     } catch (error) {
       setIsTyping(false);
-      toast.error(error.response.data.message);
+      console.error(error);
     }
   }
 
@@ -58,4 +56,4 @@ function CommandInChat(props) {
   )
 }
 
-export default CommandInChat
+export default InitialCmd

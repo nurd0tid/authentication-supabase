@@ -1,6 +1,6 @@
 import checkPermission from "@/pages/utils/auth/checkPermission";
-import supabase from "../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
+import supabase from "../../../../../../supabase";
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -18,15 +18,15 @@ export default async function handler(req, res) {
       if (isValid) {
         const { id } = req.query;
         
-        const { data, error } = await supabase.rpc('get_fn_faqs', {
-            by_id: id
+        const { data, error } = await supabase.rpc('get_fn_cmd_help', {
+          by_id: id,
         });
 
         if (error) {
           throw error;
         }
 
-        res.status(201).json(data);
+        res.status(200).json(data);
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }

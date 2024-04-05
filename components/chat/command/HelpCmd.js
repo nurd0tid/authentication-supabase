@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import Link from 'next/link';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-function CommandInChatSingle(props) {
+function HelpCmd(props) {
   const [data, setData] = useState([]);
   const {
     commandId,
@@ -16,16 +14,16 @@ function CommandInChatSingle(props) {
   useEffect(() => {     
       const fetchData = async () => {
         try {
-          const response = await axios.get('/api/chat/cmd/single', {
+          const response = await axios.get('/api/chat/cmd/get/help', {
             params: {
               id: commandId
             }
           });
-          if (response.status === 201) {
+          if (response.status === 200) {
             setData(response.data[0]);
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error(error);
         }
       };
   
@@ -35,7 +33,7 @@ function CommandInChatSingle(props) {
   const clickCommand = async (text, sender, cmdId) => {
     try {
       setIsTyping(true);
-      const response = await axios.post('/api/chat/sendcmd', { 
+      const response = await axios.post('/api/chat/cmd/sending/help', { 
         text: text, 
         sender: sender, 
         room_id: roomId,
@@ -43,11 +41,11 @@ function CommandInChatSingle(props) {
       });
       if (response.status === 200) {
         setIsTyping(false);
-        toast.success(response.data.message);
+        console.log(response.data.message);
       }
     } catch (error) {
       setIsTyping(false);
-      toast.error(error.response.data.message);
+      console.error(error);
     }
   }
 
@@ -60,4 +58,4 @@ function CommandInChatSingle(props) {
   )
 }
 
-export default CommandInChatSingle
+export default HelpCmd

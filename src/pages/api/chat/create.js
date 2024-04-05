@@ -22,11 +22,7 @@ export default async function handler(req, res) {
 
         const { data, error } = await supabase.rpc('create_fn_chat', {
           new_room_by: room_by,
-          // new_assistants_id: assistant_id,
-          // new_thread_id: thread.id,
-          new_reciver: null,
           new_reciver_name: reciver_name,
-          new_reciver_photo: null,
           new_last_message: `Hey, ${sender_name} 👋.<br/> Mari mulai dengan memilih topik atau sampaikan permintaan Anda.<br/> Apakah ada yang bisa saya bantu hari ini?`,
           new_role: 'assistant',
           new_content: `Hey, ${sender_name} 👋.<br/> Mari mulai dengan memilih topik atau sampaikan permintaan Anda.<br/> Apakah ada yang bisa saya bantu hari ini?`,

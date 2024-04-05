@@ -1,4 +1,4 @@
-import supabase from "../../../../supabase";
+import supabase from "../../../../../../supabase";
 import checkPermission from "@/pages/utils/auth/checkPermission";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
@@ -20,14 +20,11 @@ export default async function handler(req, res) {
         const { text, sender, room_id, command_id, } = req.body;
 
         // Insert original message into Supabase
-        const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_command', {
+        const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_cmd', {
           new_thread_room_id: room_id,
           new_content: text,
           new_role: sender,
-          new_type_chat: 'text',
-          new_command_id: null,
-          new_command_show: false,
-          new_initial_command: null,
+          new_type_chat: 'text'
         });
 
         if (error) throw new Error(error.message);
@@ -35,7 +32,7 @@ export default async function handler(req, res) {
         res.status(200).json({ message: 'Successfully sending message!' });
 
         // Insert original message into Supabase
-        const { data: insertedMessageSystem, errorSystem } = await supabase.rpc('create_fn_send_command', {
+        const { data: insertedMessageSystem, errorSystem } = await supabase.rpc('create_fn_send_cmd_reply', {
           new_thread_room_id: room_id,
           new_content: 'Berikut beberapa topik pertanyaaan yang sesuai permintaan Anda. Dari opsi dibawah ini, silahkan pilih opsi sesuai dengan masalah yang dihadapi.',
           new_role: 'system',

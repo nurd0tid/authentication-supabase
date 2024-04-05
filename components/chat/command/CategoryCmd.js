@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import Link from 'next/link';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-function Faqs(props) {
+function CategoryCmd(props) {
   const [data, setData] = useState([]);
   const {
     commandId,
@@ -16,18 +14,18 @@ function Faqs(props) {
   const fetchQuestion = async () => {
     try {
       if(commandId) {
-        const response = await axios.get('/api/chat/faqs',  {
+        const response = await axios.get('/api/chat/cmd/get/category',  {
           params: {
             id: commandId
           }
         });
   
-        if (response.status === 201) {
+        if (response.status === 200) {
           setData(response.data)
         }
       }
     } catch (error) {
-      console.error(error.response.data.message);
+      console.error(error);
     }
   };
 
@@ -39,19 +37,17 @@ function Faqs(props) {
   const clickCommand = async (text, sender, questionId) => {
     try {
       setIsTyping(true);
-      const response = await axios.post('/api/chat/sendqs', { 
+      const response = await axios.post('/api/chat/cmd/sending/category', { 
         text: text, 
         sender: sender, 
         room_id: roomId,
         question_id:  questionId
       });
       if (response.status === 200) {
-        toast.success(response.data.message);
         console.log(error)
         setIsTyping(false);
       }
     } catch (error) {
-      toast.error(error);
       console.log(error)
       setIsTyping(false);
     }
@@ -69,4 +65,4 @@ function Faqs(props) {
   )
 }
 
-export default Faqs
+export default CategoryCmd

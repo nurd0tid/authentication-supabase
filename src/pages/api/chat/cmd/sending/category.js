@@ -1,4 +1,4 @@
-import supabase from "../../../../../supabase";
+import supabase from "../../../../../../supabase";
 import checkPermission from "@/pages/utils/auth/checkPermission";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
@@ -17,10 +17,10 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { text, sender, room_id } = req.body;
+        const { text, sender, room_id, question_id } = req.body;
 
         // Insert original message into Supabase
-        const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_message_bot', {
+        const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_category', {
           new_thread_room_id: room_id,
           new_content: text,
           new_role: sender,
@@ -31,14 +31,17 @@ export default async function handler(req, res) {
 
         res.status(200).json({ message: 'Successfully sending message!' });
 
+        // get answer question
+        const getQuestion = await supabase.rpc('get_fn_faqs', {
+          by_id: question_id
+        });
+
         // Insert original message into Supabase
-        const { data: insertedMessageSystem, errorSystem } = await supabase.rpc('create_fn_send_message_bot_reply', {
+        const { data: insertedMessageSystem, errorSystem } = await supabase.rpc('create_fn_send_category_reply', {
           new_thread_room_id: room_id,
-          new_content: 'Berikut topik yang sudah kami rangkum. Dari opsi dibawah ini, kamu dapat memilih nya ya.',
+          new_content: getQuestion.data[0].answer,
           new_role: 'system',
-          new_type_chat: 'text',
-          new_command_show: true,
-          new_initial_command: 0
+          new_type_chat: 'text'
         });
 
         if (error) throw new Error(errorSystem.message);

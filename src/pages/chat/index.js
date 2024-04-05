@@ -8,11 +8,11 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import supabase from '../../../supabase';
-import Faqs from '../../../components/chat/Faqs';
-import CommandInChat from '../../../components/chat/command/CommandInChat';
-import CommandInChatSingle from '../../../components/chat/command/CommandInChatSingle';
 import CommandListBottom from '../../../components/chat/command/CommandListBottom';
 import LeftChat from '../../../components/chat/LeftChat';
+import InitialCmd from '../../../components/chat/command/InitialCmd';
+import CategoryCmd from '../../../components/chat/command/CategoryCmd';
+import HelpCmd from '../../../components/chat/command/HelpCmd';
 
 
 const Chat = () => {
@@ -287,12 +287,12 @@ const Chat = () => {
                                 <div className="main-msg-wrapper">
                                     <div>
                                       {formatOutput(msg.content)}
-                                      {msg.command_id && msg.command_show && msg.initial_command === 1 ? (
-                                          <Faqs commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
-                                      ) : msg.command_show && msg.initial_command === 0 ? (
-                                          <CommandInChat roomId={selectedRoom} setIsTyping={setIsTyping}/>
+                                      {msg.command_show && msg.initial_command === 0 ? (
+                                          <InitialCmd roomId={selectedRoom} setIsTyping={setIsTyping}/>
+                                      ) : msg.command_id && msg.command_show && msg.initial_command === 1 ? (
+                                          <CategoryCmd commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
                                       ) : msg.command_show && msg.initial_command === 2 ? (
-                                          <CommandInChatSingle roomId={selectedRoom} setIsTyping={setIsTyping} commandId={msg.command_id}/>
+                                          <HelpCmd roomId={selectedRoom} setIsTyping={setIsTyping} commandId={msg.command_id}/>
                                       ) : (
                                           <></>
                                       )}

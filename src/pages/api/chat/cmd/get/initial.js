@@ -1,5 +1,5 @@
 import checkPermission from "@/pages/utils/auth/checkPermission";
-import supabase from "../../../../supabase";
+import supabase from "../../../../../../supabase";
 import verifyToken from "@/pages/utils/auth/verifyToken";
 
 export default async function handler(req, res) {
@@ -16,7 +16,6 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { id } = req.query;
         
         const { data, error } = await supabase.rpc('get_fn_command');
 
@@ -24,7 +23,7 @@ export default async function handler(req, res) {
           throw error;
         }
 
-        res.status(201).json(data);
+        res.status(200).json(data);
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }
