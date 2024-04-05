@@ -264,15 +264,36 @@ const Chat = () => {
   // Mendefinisikan fungsi untuk mengubah format tanggal
   function formatDateTime(dateTimeString) {
     const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
       hour: 'numeric',
       minute: 'numeric'
     };
 
-    const formattedDate = new Date(dateTimeString).toLocaleDateString('en-GB', options);
-    return formattedDate;
+    const date = new Date(dateTimeString);
+    const currentDate = new Date();
+    const yesterdayDate = new Date(currentDate);
+    yesterdayDate.setDate(currentDate.getDate() - 1);
+
+    const isToday = date.getDate() === currentDate.getDate() &&
+                    date.getMonth() === currentDate.getMonth() &&
+                    date.getFullYear() === currentDate.getFullYear();
+
+    const isYesterday = date.getDate() === yesterdayDate.getDate() &&
+                        date.getMonth() === yesterdayDate.getMonth() &&
+                        date.getFullYear() === yesterdayDate.getFullYear();
+
+    if (isToday) {
+      return 'Today ' + date.toLocaleTimeString('en-US', options);
+    } else if (isYesterday) {
+      return 'Yesterday ' + date.toLocaleTimeString('en-US', options);
+    } else {
+      const formatDate = new Intl.DateTimeFormat('en-GB', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }).format(date);
+
+      return formatDate;
+    }
   }
 
   // Mendefinisikan fungsi time left live agent
