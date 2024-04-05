@@ -12,6 +12,7 @@ function ListCmd(props) {
     reciverName,
     reciverPhoto,
     setToThreadId,
+    setIsTyping,
     setTypeChat,
   } = props
   const [minimumCredit, setMinimumCredit] = useState(5);
@@ -43,7 +44,8 @@ function ListCmd(props) {
     const status = remainingCredit >= 0;
     const finalCredit = status ? remainingCredit : 0;
 
-    try {     
+    try {
+      setIsTyping(true);
       const response = await axios.post('/api/chat/fiture/ai', {
         room_id: roomId,
         status: status,
@@ -58,7 +60,9 @@ function ListCmd(props) {
         setTypeChat(response.data.type_chat);
         toast.success('Berhasil terhubung dengan Assistant.')
       }
+      setIsTyping(false);
     } catch (error) {
+      setIsTyping(false);
       toast.error('Something when wrong!')
     }
   }

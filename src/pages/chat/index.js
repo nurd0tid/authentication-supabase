@@ -31,6 +31,8 @@ const Chat = () => {
   const [userCredit, setUserCredit] = useState(0);
   const [reciverName, setReciverName] = useState('');
   const [reciverPhoto, setReciverPhoto] = useState('');
+  const [scrollMessage, setScrollMessage] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(900);
   const messagesEndRef = useRef(null);
 
   // Fetching Me
@@ -101,6 +103,7 @@ const Chat = () => {
           });
           if (response.status === 201) {
             setMessages(response.data);
+            setInitialFetchComplete(true);
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -113,31 +116,49 @@ const Chat = () => {
 
   // realtime message
   useEffect(() => {
-    if (initialFetchComplete) {
-      const channel = supabase
-        .channel('realtime message')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message' }, handleMessageInserted)
-        .subscribe();
+    const channel = supabase
+      .channel('realtime message')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message' }, handleMessageInserted)
+      .subscribe();
 
-      return () => {
-        channel.unsubscribe();
-      };
-    }
-  }, [initialFetchComplete, selectedRoom]);
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [selectedRoom]);
 
   const handleMessageInserted = (payload) => {
     const { new: newMessage } = payload
     if (selectedRoom === newMessage.thread_room_id) {
+      setScrollMessage(true)
       setMessages((prevMessage) => [...prevMessage, newMessage])
-      scrollToBottom();
     }
   }
 
+  // First Scroll
   useEffect(() => {
-    if (initialFetchComplete) {
+    const delay = setTimeout(() => {
+      if (initialFetchComplete) {
+        scrollToBottom();
+      }
+    }, 5000);
+
+    return () => clearTimeout(delay);
+  }, [initialFetchComplete]);
+
+  // Typing
+  useEffect(() => {
+        scrollToBottom();
+  }, [isTyping]);
+
+  // New Messagge
+  useEffect(() => {
+    const delay = setTimeout(() => {
       scrollToBottom();
-    }
-  }, [messages]);
+      setScrollMessage(false);
+    }, 100);
+
+    return () => clearTimeout(delay);
+  }, [scrollMessage]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -254,6 +275,26 @@ const Chat = () => {
     return formattedDate;
   }
 
+  // Mendefinisikan fungsi time left live agent
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setTimeLeft(prevTimeLeft => {
+  //       if (prevTimeLeft > 0) {
+  //         return prevTimeLeft - 1;
+  //       } else {
+  //         clearInterval(timer);
+  //         console.log('Waktu telah habis');
+  //         return 0;
+  //       }
+  //     });
+  //   }, 500); // setiap 1 detik
+
+  //   return () => clearInterval(timer); // membersihkan timer saat komponen unmount
+  // }, []);
+
+  // // Konversi detik menjadi menit dan detik
+  // const minutes = Math.floor(timeLeft / 60);
+  // const seconds = timeLeft % 60;
 
   return (
     <div>
@@ -270,7 +311,6 @@ const Chat = () => {
           setToAssistantId={setToAssistantId}
           setToThreadId={setToThreadId}
           setTypeChat={setTypeChat}
-          setInitialFetchComplete={setInitialFetchComplete}
           setReciverName={setReciverName}
           setReciverPhoto={setReciverPhoto}
         />
@@ -280,9 +320,17 @@ const Chat = () => {
               <div className="main-content-app pt-0">
                 <div className="main-content-body main-content-body-chat h-100">
                   <div className="main-chat-header pt-3 d-block d-sm-flex">
-                    <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
-                    <div className="main-chat-msg-name mt-2">
-                      <h6>Legalnowy</h6>
+                    <div className='d-flex'>
+                      {reciverPhoto ? (
+                        <div className="main-img-user">
+                          <img alt="avatar" src={avatarContactUrl+reciverPhoto} />
+                        </div>
+                      ) : (
+                        <div className="avatar avatar-md brround bg-primary-transparent text-primary">{reciverName.trim().charAt(0)}</div>
+                      )}
+                      <div className="main-chat-msg-name mt-2">
+                        <h6>{reciverName}</h6>
+                      </div>
                     </div>
                     <Nav>
                       <div className="">
@@ -304,12 +352,13 @@ const Chat = () => {
                   </div>
                   {/* <!-- main-chat-header --> */}
                   <div className="main-chat-body flex-2" id="ChatBody">
+                    {/* <span className="fullwidth-arrow-warning-ribbons"><div className="bar">Time Remaining: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></span> */}
                     <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }}>
                       <div className="content-inner">
                         {messages.map((msg, index) => (
                           <div key={index}>
                           {msg.role ===  'system' || msg.role === 'assistant' ? (
-                            <div className="media chat-left mb-2">
+                            <div className="media chat-left">
                               {msg.sender_photo ? (
                                 <div className="main-img-user">
                                   <img alt="avatar" src={avatarContactUrl+msg.sender_photo} />
@@ -353,15 +402,15 @@ const Chat = () => {
                                     </div>
                                 </div>
                                 <div>
-                                  <div>
-                                    <p style={{ fontSize: '12px' }}>{msg.sender_name} <p style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</p></p>
+                                  <div className='mb-2'>
+                                    <span style={{ fontSize: '12px' }}>{msg.sender_name} <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span></span>
                                   </div>
                                   {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
                                 </div>
                               </div>
                             </div>
                           ) : (
-                            <div className="media flex-row-reverse chat-right mb-2">
+                            <div className="media flex-row-reverse chat-right">
                               {msg.sender_photo ? (
                                 <div className="main-img-user">
                                   <img alt="avatar" src={avatarUrl+msg.sender_photo} />
@@ -374,7 +423,7 @@ const Chat = () => {
                                 <div dangerouslySetInnerHTML={{ __html: msg.content }} />
                                 </div>
                                 <div>
-                                  <div>
+                                  <div className='mb-2'>
                                     <span style={{ fontSize: '12px' }} className='media flex-row-reverse'>{msg.sender_name} </span>
                                     <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
                                   </div>
@@ -402,6 +451,7 @@ const Chat = () => {
                           </div>
                         )}
                       </div>
+                      <div className='mt-2'></div>
                     </PerfectScrollbar>
                   </div>
                   <ListCmd 
@@ -414,6 +464,7 @@ const Chat = () => {
                     setToThreadId={setToThreadId}
                     setToAssistantId={setToAssistantId}
                     setTypeChat={setTypeChat}
+                    setIsTyping={setIsTyping}
                   />
                   <div className="main-chat-footer">
                     <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />

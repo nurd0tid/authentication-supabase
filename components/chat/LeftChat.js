@@ -16,7 +16,6 @@ function LeftChat(props) {
     setToAssistantId,
     setToThreadId,
     setTypeChat,
-    setInitialFetchComplete,
     initialFetchComplete,
     setReciverName,
     setReciverPhoto
@@ -39,7 +38,6 @@ function LeftChat(props) {
           });
           if (response.status === 201) {
             setSideMessage(response.data);
-            setInitialFetchComplete(true);
           }
         } catch (error) {
           console.error('Error fetching user data:', error);

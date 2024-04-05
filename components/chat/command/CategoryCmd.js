@@ -7,7 +7,7 @@ function CategoryCmd(props) {
   const {
     commandId,
     roomId,
-    setIsTyping ,
+    setIsTyping,
     userData,
     reciverName,
     reciverPhoto
@@ -51,7 +51,7 @@ function CategoryCmd(props) {
         bot_photo: reciverPhoto
       });
       if (response.status === 200) {
-        console.log(error)
+        console.log(response.error)
         setIsTyping(false);
       }
     } catch (error) {
