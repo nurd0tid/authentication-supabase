@@ -8,11 +8,11 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import supabase from '../../../supabase';
-import CommandListBottom from '../../../components/chat/command/CommandListBottom';
 import LeftChat from '../../../components/chat/LeftChat';
 import InitialCmd from '../../../components/chat/command/InitialCmd';
 import CategoryCmd from '../../../components/chat/command/CategoryCmd';
 import HelpCmd from '../../../components/chat/command/HelpCmd';
+import ListCmd from '../../../components/chat/command/ListCmd';
 
 
 const Chat = () => {
@@ -337,7 +337,7 @@ const Chat = () => {
                       </div>
                     </PerfectScrollbar>
                   </div>
-                  <CommandListBottom 
+                  <ListCmd 
                     typeChat={typeChat} 
                     credit={userCredit} 
                     roomId={selectedRoom} 
