@@ -167,7 +167,7 @@ const Chat = () => {
   };
 
   const handleSendMessage = async (e) => {
-    e.preventDefault();
+    // e.preventDefault();
     if (!inputText.trim()) return;
     try {
       setIsLoading(true);
@@ -320,9 +320,9 @@ const Chat = () => {
               <div className="main-content-app pt-0">
                 <div className="main-content-body main-content-body-chat h-100">
                   <div className="main-chat-header pt-3 d-block d-sm-flex">
-                    <div className='d-flex'>
+                    <div className='d-flex mb-2'>
                       {reciverPhoto ? (
-                        <div className="main-img-user">
+                        <div className="main-img-user me-3">
                           <img alt="avatar" src={avatarContactUrl+reciverPhoto} />
                         </div>
                       ) : (
@@ -351,9 +351,9 @@ const Chat = () => {
                     </Nav>
                   </div>
                   {/* <!-- main-chat-header --> */}
-                  <div className="main-chat-body flex-2" id="ChatBody">
+                  <div className="main-chat-body flex-2" id="ChatBody" style={{ height: '350px' }}>
                     {/* <span className="fullwidth-arrow-warning-ribbons"><div className="bar">Time Remaining: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></span> */}
-                    <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }}>
+                    <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }} options={{ suppressScrollX: true, wheelPropagation: false }}>
                       <div className="content-inner">
                         {messages.map((msg, index) => (
                           <div key={index}>
@@ -403,7 +403,8 @@ const Chat = () => {
                                 </div>
                                 <div>
                                   <div className='mb-2'>
-                                    <span style={{ fontSize: '12px' }}>{msg.sender_name} <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span></span>
+                                    <span style={{ fontSize: '12px' }} >{msg.sender_name} </span><br/>
+                                    <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
                                   </div>
                                   {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
                                 </div>

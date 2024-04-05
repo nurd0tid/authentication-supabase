@@ -82,12 +82,14 @@ function ListCmd(props) {
     }
   }
 
+  const overflowX = window.innerWidth <= 600 ? 'auto' : 'hidden';
+
   return (
     <div
       ref={containerRef}
       className='btn-list-container'
       style={{
-        overflowX: 'hidden',
+        overflowX: overflowX,
         overflowY: 'hidden',
         whiteSpace: 'nowrap',
         maxWidth: '100%', // ubah sesuai kebutuhan
@@ -115,6 +117,19 @@ function ListCmd(props) {
         )}
         <span href='#' className='btn btn-outline-primary btn-sm'>Topik</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Bantuan</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
         <span href='#' className='btn btn-outline-primary btn-sm' onClick={handleAssistant}>Chat Assistant</span>
       </div>

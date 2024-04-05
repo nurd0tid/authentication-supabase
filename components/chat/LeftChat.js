@@ -139,6 +139,20 @@ function LeftChat(props) {
     }
   }
 
+  // Mendefinisikan fungsi untuk mengubah format tanggal
+  function formatDateTime(dateTimeString) {
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    };
+
+    const formattedDate = new Date(dateTimeString).toLocaleDateString('en-GB', options);
+    return formattedDate;
+  }
+
   return (
     <Col sm={12} md={12} lg={12} xxl={4}>
       <Card className="overflow-hidden">
@@ -187,7 +201,7 @@ function LeftChat(props) {
                             <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarContactUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
                             <div className="media-body">
                               <div className="media-contact-name">
-                                <span>{sidemsg.reciver_name}</span> <span>{sidemsg.updated_at}</span>
+                                <span>{sidemsg.reciver_name}</span> <span>{formatDateTime(sidemsg.updated_at)}</span>
                               </div>
                               <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '35px'}}/>
                             </div>
