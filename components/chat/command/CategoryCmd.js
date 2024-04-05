@@ -7,7 +7,10 @@ function CategoryCmd(props) {
   const {
     commandId,
     roomId,
-    setIsTyping 
+    setIsTyping ,
+    userData,
+    reciverName,
+    reciverPhoto
   } = props
 
   // Function Show Data
@@ -41,7 +44,11 @@ function CategoryCmd(props) {
         text: text, 
         sender: sender, 
         room_id: roomId,
-        question_id:  questionId
+        question_id:  questionId,
+        sender_name: userData?.sun,
+        sender_photo: userData?.photo,
+        bot_name: reciverName,
+        bot_photo: reciverPhoto
       });
       if (response.status === 200) {
         console.log(error)

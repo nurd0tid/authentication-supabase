@@ -8,10 +8,10 @@ function ListCmd(props) {
     typeChat,
     credit,
     roomId,
-    senderName,
-    userId,
+    userData,
+    reciverName,
+    reciverPhoto,
     setToThreadId,
-    setToAssistantId,
     setTypeChat,
   } = props
   const [minimumCredit, setMinimumCredit] = useState(5);
@@ -48,12 +48,13 @@ function ListCmd(props) {
         room_id: roomId,
         status: status,
         credit: finalCredit,
-        sender_name: senderName,
-        userId: userId
+        userId: userData?.sud,
+        sender_name: userData?.sun,
+        bot_name: reciverName,
+        bot_photo: reciverPhoto
       });
       if (response.status === 200) {
-        setToThreadId(response.data.thread_id);
-        setToAssistantId(response.data.assistant_id);
+        setToThreadId(response.data.thread_id)
         setTypeChat(response.data.type_chat);
         toast.success('Berhasil terhubung dengan Assistant.')
       }

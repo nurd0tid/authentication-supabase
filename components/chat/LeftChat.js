@@ -17,7 +17,9 @@ function LeftChat(props) {
     setToThreadId,
     setTypeChat,
     setInitialFetchComplete,
-    initialFetchComplete
+    initialFetchComplete,
+    setReciverName,
+    setReciverPhoto
   } = props
   const avatarContactUrl = process.env.NEXT_PUBLIC_AVATAR_CONTACT_URL;
   const [dataContact, setDataContact] = useState([]);
@@ -105,25 +107,33 @@ function LeftChat(props) {
     }
   }
 
-  const handleRoomSelection = (roomId, threadId, assistantsId, typechat) => {
+  const handleRoomSelection = (roomId, threadId, assistantsId, typechat, reciverName, reciverPhoto) => {
+    setReciverName(reciverName);
+    setReciverPhoto(reciverPhoto);
     setSelectedRoom(roomId);
     setToAssistantId(assistantsId);
     setToThreadId(threadId);
     setTypeChat(typechat);
   };
 
-  const clickContact = async (reciverName, assistantId) => {
+  const clickContact = async (reciverName, assistantId, reciverGroup, reciverPhoto) => {
     try {     
       const response = await axios.post('/api/chat/create', {
         room_by: userData?.sud,
+        new_assistant_id: assistantId,
         sender_name: userData?.sun,
         reciver_name: reciverName,
-        assistant_id: assistantId
+        assistant_id: assistantId,
+        reciver_group: reciverGroup,
+        reciver_photo: reciverPhoto
       });
       if (response.status === 201) {
+        setReciverName(response.data.reciver_name);
+        setReciverPhoto(response.data.reciver_photo);
         setSelectedRoom(response.data.room_id);
         setActiveTab('msg');
         setTypeChat(response.data.type_chat);
+        setToAssistantId(response.data.assistant_id);
         toast.success('Create room successfully')
       }
     } catch (error) {
@@ -163,23 +173,25 @@ function LeftChat(props) {
                   <Nav.Item>
                     <Nav.Link eventKey="msg">Messages</Nav.Link>
                   </Nav.Item>
+                  {userData?.role !== 'Super Admin' && userData?.role !== 'Manager' && (
                   <Nav.Item>
                     <Nav.Link eventKey="cnts">Contacts</Nav.Link>
                   </Nav.Item>
+                  )}
                 </Nav>
                 <Tab.Content className=' main-chat-list flex-2 mt-2'>
                   <Tab.Pane eventKey="msg">
                     <div className="main-chat-list tab-pane">
                       {sideMessage && sideMessage.length > 0 ? (
                         sideMessage.map((sidemsg, index) => (
-                          <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} onClick={() => handleRoomSelection(sidemsg.id, sidemsg.thread_id, sidemsg.assitants_id, sidemsg.type_chat)}
+                          <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} onClick={() => handleRoomSelection(sidemsg.id, sidemsg.thread_id, sidemsg.assitants_id, sidemsg.type_chat, sidemsg.reciver_name, sidemsg.reciver_photo)}
 >
-                            <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
+                            <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarContactUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
                             <div className="media-body">
                               <div className="media-contact-name">
                                 <span>{sidemsg.reciver_name}</span> <span>{sidemsg.updated_at}</span>
                               </div>
-                              <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '40px'}}/>
+                              <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '35px'}}/>
                             </div>
                           </Link>
                         ))
@@ -188,40 +200,42 @@ function LeftChat(props) {
                       )}
                     </div>
                   </Tab.Pane>
-                  <Tab.Pane eventKey="cnts">
-                    <div>
-                      {dataContact && dataContact.length > 0 ? (
-                        dataContact.map((contact, index) => (
-                        <div className="d-flex align-items-center media" onClick={() => clickContact(contact.group_name, contact.ai_group)} key={index}>
-                          <div className="mb-0 me-2">
-                            {contact.group_photo ? (
-                              <div className="main-img-user">
-                                <img alt="user3" src={avatarContactUrl+contact.group_photo} />
-                              </div>
-                            ) : (
-                              <span className="avatar avatar-md brround bg-danger-transparent text-danger">{contact.group_name.charAt(0)}</span>
-                            )}
-                          </div>
-                          <div className="align-items-center justify-content-between">
-                            <div className="media-body ms-2">
-                              <div className="media-contact-name">
-                                <span>{contact.group_name}</span>
-                                <span></span>
+                  {userData?.role !== 'Super Admin' && userData?.role !== 'Manager' && (
+                    <Tab.Pane eventKey="cnts">
+                      <div>
+                        {dataContact && dataContact.length > 0 ? (
+                          dataContact.map((contact, index) => (
+                          <div className="d-flex align-items-center media" onClick={() => clickContact(contact.group_name, contact.ai_group, contact.id, contact.group_photo)} key={index}>
+                            <div className="mb-0 me-2">
+                              {contact.group_photo ? (
+                                <div className="main-img-user">
+                                  <img alt="user3" src={avatarContactUrl+contact.group_photo} />
+                                </div>
+                              ) : (
+                                <span className="avatar avatar-md brround bg-danger-transparent text-danger">{contact.group_name.charAt(0)}</span>
+                              )}
+                            </div>
+                            <div className="align-items-center justify-content-between">
+                              <div className="media-body ms-2">
+                                <div className="media-contact-name">
+                                  <span>{contact.group_name}</span>
+                                  <span></span>
+                                </div>
                               </div>
                             </div>
+                            {/* <div className="ms-auto">
+                              <i className="contact-status text-primary fe fe-message-square me-2"></i>
+                              <i className="contact-status text-success fe fe-phone-call me-2"></i>
+                              <i className="contact-status text-danger fe fe-video me-2"></i>
+                            </div> */}
                           </div>
-                          {/* <div className="ms-auto">
-                            <i className="contact-status text-primary fe fe-message-square me-2"></i>
-                            <i className="contact-status text-success fe fe-phone-call me-2"></i>
-                            <i className="contact-status text-danger fe fe-video me-2"></i>
-                          </div> */}
-                        </div>
-                        ))
-                      ) : (
-                        <p className='text-center text-muted'>No contact available.</p>
-                      )}
-                    </div>
-                </Tab.Pane>
+                          ))
+                        ) : (
+                          <p className='text-center text-muted'>No contact available.</p>
+                        )}
+                      </div>
+                    </Tab.Pane>
+                  )}
                 </Tab.Content>
               </Tab.Container>
             </div>

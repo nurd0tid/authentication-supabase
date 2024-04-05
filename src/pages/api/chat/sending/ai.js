@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { text, sender, thread_id, room_id, assistant_id, status, credit, userId } = req.body;
+        const { text, sender, thread_id, room_id, assistant_id, status, credit, userId, sender_name, sender_photo, bot_name, bot_photo } = req.body;
 
         if (status) {
           // Insert original message into Supabase
@@ -29,7 +29,9 @@ export default async function handler(req, res) {
             new_role: sender,
             new_type_chat: 'text',
             new_credit: credit,
-            new_user_id: userId
+            new_user_id: userId,
+            new_sender_name: sender_name,
+            new_sender_photo: sender_photo
           });
 
           if (error) throw new Error(error.message);
@@ -80,7 +82,9 @@ export default async function handler(req, res) {
               new_thread_room_id: room_id,
               new_content: lastMessageForRun.content[0].text.value,
               new_role: 'assistant',
-              new_type_chat: 'text'
+              new_type_chat: 'text',
+              new_sender_name: `Assistant ${bot_name}`,
+              new_sender_photo: bot_photo
             });
 
             if (replyError) throw new Error(replyError.message);
@@ -93,7 +97,9 @@ export default async function handler(req, res) {
             new_thread_room_id: room_id,
             new_content: text,
             new_role: sender,
-            new_type_chat: 'text'
+            new_type_chat: 'text',
+            new_sender_name: sender_name,
+            new_sender_photo: sender_photo
           });
 
           if (errorInsert) throw new Error(errorInsert.message);
@@ -105,7 +111,9 @@ export default async function handler(req, res) {
             new_type_chat: 'text',
             new_command_show: true,
             new_command_id: 'a2123a45-9838-4a9e-b28c-e03c4fac62a4',
-            new_initial_command: 2
+            new_initial_command: 2,
+            new_sender_name: `Assistant ${bot_name}`,
+            new_sender_photo: bot_photo
           });
 
           if (error) throw new Error(error.message);

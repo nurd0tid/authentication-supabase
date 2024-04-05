@@ -17,6 +17,7 @@ import ListCmd from '../../../components/chat/command/ListCmd';
 
 const Chat = () => {
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
+  const avatarContactUrl = process.env.NEXT_PUBLIC_AVATAR_CONTACT_URL;
   const [userData, setUserData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -28,6 +29,8 @@ const Chat = () => {
   const [toAssistantId, setToAssistantId] = useState('');
   const [typeChat, setTypeChat] = useState('');
   const [userCredit, setUserCredit] = useState(0);
+  const [reciverName, setReciverName] = useState('');
+  const [reciverPhoto, setReciverPhoto] = useState('');
   const messagesEndRef = useRef(null);
 
   // Fetching Me
@@ -153,6 +156,10 @@ const Chat = () => {
           text: inputText, 
           sender: 'user', 
           room_id: selectedRoom,
+          sender_name: userData?.sun,
+          sender_photo: userData?.photo,
+          bot_name: reciverName,
+          bot_photo: reciverPhoto
         });
         if (response.status === 200) {
           setSelectedRoom(selectedRoom)
@@ -173,7 +180,11 @@ const Chat = () => {
           assistant_id:  toAssistantId,
           status: status,
           credit: finalCredit,
-          userId: userData?.sud
+          userId: userData?.sud,
+          sender_name: userData?.sun,
+          sender_photo: userData?.photo,
+          bot_name: reciverName,
+          bot_photo: reciverPhoto
         });
         if (response.status === 200) {
           setInputText('');
@@ -229,6 +240,21 @@ const Chat = () => {
     );
   }
 
+  // Mendefinisikan fungsi untuk mengubah format tanggal
+  function formatDateTime(dateTimeString) {
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    };
+
+    const formattedDate = new Date(dateTimeString).toLocaleDateString('en-GB', options);
+    return formattedDate;
+  }
+
+
   return (
     <div>
       <ToastContainer />
@@ -245,6 +271,8 @@ const Chat = () => {
           setToThreadId={setToThreadId}
           setTypeChat={setTypeChat}
           setInitialFetchComplete={setInitialFetchComplete}
+          setReciverName={setReciverName}
+          setReciverPhoto={setReciverPhoto}
         />
         {selectedRoom ? (
           <Col sm={12} md={12} lg={12} xxl={8}>
@@ -282,36 +310,75 @@ const Chat = () => {
                           <div key={index}>
                           {msg.role ===  'system' || msg.role === 'assistant' ? (
                             <div className="media chat-left mb-2">
-                              <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
+                              {msg.sender_photo ? (
+                                <div className="main-img-user">
+                                  <img alt="avatar" src={avatarContactUrl+msg.sender_photo} />
+                                </div>
+                              ) : (
+                                <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
+                              )}
                               <div className="media-body">
                                 <div className="main-msg-wrapper">
                                     <div>
                                       {formatOutput(msg.content)}
                                       {msg.command_show && msg.initial_command === 0 ? (
-                                          <InitialCmd roomId={selectedRoom} setIsTyping={setIsTyping}/>
-                                      ) : msg.command_id && msg.command_show && msg.initial_command === 1 ? (
-                                          <CategoryCmd commandId={msg.command_id} roomId={selectedRoom} setIsTyping={setIsTyping}/>
-                                      ) : msg.command_show && msg.initial_command === 2 ? (
-                                          <HelpCmd roomId={selectedRoom} setIsTyping={setIsTyping} commandId={msg.command_id}/>
-                                      ) : (
-                                          <></>
+                                        <InitialCmd 
+                                          roomId={selectedRoom} 
+                                          setIsTyping={setIsTyping}
+                                          userData={userData} 
+                                          reciverName={reciverName}
+                                          reciverPhoto={reciverPhoto}
+                                        />
+                                        ) : msg.command_id && msg.command_show && msg.initial_command === 1 ? (
+                                        <CategoryCmd 
+                                          commandId={msg.command_id} 
+                                          roomId={selectedRoom} 
+                                          setIsTyping={setIsTyping} 
+                                          userData={userData} 
+                                          reciverName={reciverName}
+                                          reciverPhoto={reciverPhoto}
+                                        />
+                                        ) : msg.command_show && msg.initial_command === 2 ? (
+                                        <HelpCmd 
+                                          roomId={selectedRoom} 
+                                          setIsTyping={setIsTyping} 
+                                          commandId={msg.command_id}
+                                          userData={userData} 
+                                          reciverName={reciverName}
+                                          reciverPhoto={reciverPhoto}
+                                        />
+                                        ) : (
+                                        <></>
                                       )}
                                     </div>
                                 </div>
                                 <div>
-                                  <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
+                                  <div>
+                                    <p style={{ fontSize: '12px' }}>{msg.sender_name} <p style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</p></p>
+                                  </div>
+                                  {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
                                 </div>
                               </div>
                             </div>
                           ) : (
                             <div className="media flex-row-reverse chat-right mb-2">
-                              <div className="main-img-user online"><img alt="avatar" src={userData?.photo ? avatarUrl+userData?.photo : "../../../assets/images/users/21.jpg"} /></div>
+                              {msg.sender_photo ? (
+                                <div className="main-img-user">
+                                  <img alt="avatar" src={avatarUrl+msg.sender_photo} />
+                                </div>
+                              ) : (
+                                <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
+                              )}
                               <div className="media-body">
                                 <div className="main-msg-wrapper">
                                 <div dangerouslySetInnerHTML={{ __html: msg.content }} />
                                 </div>
                                 <div>
-                                  <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link>
+                                  <div>
+                                    <span style={{ fontSize: '12px' }} className='media flex-row-reverse'>{msg.sender_name} </span>
+                                    <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                                  </div>
+                                  {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
                                 </div>
                               </div>
                             </div>
@@ -341,8 +408,9 @@ const Chat = () => {
                     typeChat={typeChat} 
                     credit={userCredit} 
                     roomId={selectedRoom} 
-                    senderName={userData?.sun} 
-                    userId={userData?.sud}
+                    userData={userData} 
+                    reciverName={reciverName}
+                    reciverPhoto={reciverPhoto}
                     setToThreadId={setToThreadId}
                     setToAssistantId={setToAssistantId}
                     setTypeChat={setTypeChat}

@@ -6,7 +6,10 @@ function InitialCmd(props) {
   const [data, setData] = useState([]);
   const {
     roomId,
-    setIsTyping 
+    setIsTyping,
+    userData,
+    reciverName,
+    reciverPhoto
   } = props
 
   // Function Show Data
@@ -32,7 +35,11 @@ function InitialCmd(props) {
         text: text, 
         sender: sender, 
         room_id: roomId,
-        command_id:  commandId
+        command_id:  commandId,
+        sender_name: userData?.sun,
+        sender_photo: userData?.photo,
+        bot_name: reciverName,
+        bot_photo: reciverPhoto
       });
       if (response.status === 200) {
         setIsTyping(false);

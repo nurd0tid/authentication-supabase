@@ -17,14 +17,16 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { text, sender, room_id, command_id, } = req.body;
+        const { text, sender, room_id, command_id, sender_name, sender_photo, bot_name, bot_photo } = req.body;
 
         // Insert original message into Supabase
         const { data: insertedMessage, error } = await supabase.rpc('create_fn_send_cmd', {
           new_thread_room_id: room_id,
           new_content: text,
           new_role: sender,
-          new_type_chat: 'text'
+          new_type_chat: 'text',
+          new_sender_name: sender_name,
+          new_sender_photo: sender_photo
         });
 
         if (error) throw new Error(error.message);
@@ -40,6 +42,8 @@ export default async function handler(req, res) {
           new_command_id: command_id,
           new_command_show: true,
           new_initial_command: 1,
+          new_sender_name: bot_name,
+          new_sender_photo: bot_photo
         });
 
         if (error) throw new Error(errorSystem.message);

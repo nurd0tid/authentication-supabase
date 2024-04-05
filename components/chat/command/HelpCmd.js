@@ -7,7 +7,10 @@ function HelpCmd(props) {
   const {
     commandId,
     roomId,
-    setIsTyping 
+    setIsTyping,
+    userData,
+    reciverName,
+    reciverPhoto
   } = props
 
   // Function Show Data
@@ -37,7 +40,11 @@ function HelpCmd(props) {
         text: text, 
         sender: sender, 
         room_id: roomId,
-        command_id:  cmdId
+        command_id:  cmdId,
+        sender_name: userData?.sun,
+        sender_photo: userData?.photo,
+        bot_name: reciverName,
+        bot_photo: reciverPhoto
       });
       if (response.status === 200) {
         setIsTyping(false);

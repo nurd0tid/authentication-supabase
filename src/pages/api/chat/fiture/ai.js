@@ -19,13 +19,12 @@ export default async function handler(req, res) {
       const { isValid, roleId } = await verifyToken(accessToken);
 
       if (isValid) {
-        const { room_id, status, sender_name, credit, userId } = req.body;
+        const { room_id, status, credit, userId, sender_name, bot_name, bot_photo } = req.body;
 
         if (status) {
           const thread = await openai.beta.threads.create();
 
           const { data: insertedMessage, error } = await supabase.rpc('create_fn_assign_ai_ready', {
-            new_assistants_id: process.env.NEXT_PUBLIC_ASSISTANT_ID,
             new_thread_id: thread.id,
             new_thread_room_id: room_id,
             new_content: `Hey, ${sender_name} 👋.<br/>
@@ -35,7 +34,9 @@ export default async function handler(req, res) {
             new_role: 'assistant',
             new_type_chat: 'text',
             new_credit: credit,
-            new_user_id: userId
+            new_user_id: userId,
+            new_sender_name: `Assistant ${bot_name}`,
+            new_sender_photo: bot_photo,
           });
           if (error) throw new Error(error.message);
 
@@ -48,7 +49,9 @@ export default async function handler(req, res) {
             new_type_chat: 'text',
             new_command_show: true,
             new_command_id: 'a2123a45-9838-4a9e-b28c-e03c4fac62a4',
-            new_initial_command: 2
+            new_initial_command: 2,
+            new_sender_name: bot_name,
+            new_sender_photo: bot_photo,
           });
 
           if (error) throw new Error(error.message);
