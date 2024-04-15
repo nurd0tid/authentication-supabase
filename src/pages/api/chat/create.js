@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
       if (isValid) {
 
-        const { room_by, sender_name, reciver_name, reciver_group, reciver_photo, assistant_id } = req.body;
+        const { room_by, sender_name, sender_photo, reciver_name, reciver_group, reciver_photo, assistant_id } = req.body;
 
         const { data, error } = await supabase.rpc('create_fn_chat', {
           new_room_by: room_by,
@@ -26,6 +26,8 @@ export default async function handler(req, res) {
           new_reciver_name: reciver_name,
           new_reciver_group: reciver_group,
           new_reciver_photo: reciver_photo,
+          new_sender_name: sender_name,
+          new_sender_photo: sender_photo,
           new_last_message: `Hey, ${sender_name} 👋.<br/> Mari mulai dengan memilih topik atau sampaikan permintaan Anda.<br/> Apakah ada yang bisa saya bantu hari ini?`,
           new_role: 'system',
           new_content: `Hey, ${sender_name} 👋.<br/> Mari mulai dengan memilih topik atau sampaikan permintaan Anda.<br/> Apakah ada yang bisa saya bantu hari ini?`,

@@ -17,11 +17,18 @@ export default async function handler(req, res) {
       algorithms: ['HS256'] // Menyertakan algoritma yang digunakan
     });
 
-    const { sun, sud, sur, role, photo } = decodedToken;
+    const { sun, sud, sur, role, photo, group_id } = decodedToken;
+    let data;
+
+    if (role === 'Users') {
+      data = { sun, sud, sur, role, photo };
+    } else {
+      data = { sun, sud, sur, role, photo, group_id };
+    }
 
     // Di sini Anda dapat menambahkan logika lain yang diperlukan, seperti mendapatkan data tambahan dari basis data, dll.
 
-    return res.status(200).json({ sun, sud, sur, role, photo });
+    return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ message: 'Internal Server Error' });
   }

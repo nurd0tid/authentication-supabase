@@ -84,6 +84,7 @@ const Header = ({ localVaraiable }) => {
   const [searchcolor, setsearchcolor] = useState("text-dark");
   const [NavData, setNavData] = useState([]);
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
+  const router = useRouter();
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -288,7 +289,7 @@ const Header = ({ localVaraiable }) => {
                     <Dropdown className="profile-1">
                       <Dropdown.Toggle variant='' className="nav-link leading-none d-flex no-caret">
                         {userData?.photo ? (
-                            <img alt="avatar" src={avatarUrl+userData?.hoto} />
+                            <img alt="avatar" className='avatar brround' src={avatarUrl+userData?.photo} />
                           ) : (
                             <div className="avatar avatar-md brround bg-primary-transparent text-primary">{userData?.sun.trim().charAt(0)}</div>
                           )}
@@ -301,9 +302,11 @@ const Header = ({ localVaraiable }) => {
                           </div>
                         </div>
                         <div className="dropdown-divider m-0"></div>
-                        <Link className="dropdown-item" href={`/`} onClick={handleLogout}>
+                        <span className="dropdown-item" onClick={handleLogout} style={{
+                          cursor: 'pointer'
+                        }}>
                           <i className="dropdown-icon fe fe-alert-circle"></i> Sign out
-                        </Link>
+                        </span>
                       </Dropdown.Menu>
                     </Dropdown>
 

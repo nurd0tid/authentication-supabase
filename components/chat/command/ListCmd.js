@@ -14,8 +14,10 @@ function ListCmd(props) {
     setToThreadId,
     setIsTyping,
     setTypeChat,
+    setAgentResponse,
   } = props
   const [minimumCredit, setMinimumCredit] = useState(5);
+  const [minimumLiveChatCredit, setMinimumLiveChatCredit] = useState(15);
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -59,6 +61,32 @@ function ListCmd(props) {
         setToThreadId(response.data.thread_id)
         setTypeChat(response.data.type_chat);
         toast.success('Berhasil terhubung dengan Assistant.')
+      }
+      setIsTyping(false);
+    } catch (error) {
+      setIsTyping(false);
+      toast.error('Something when wrong!')
+    }
+  }
+
+  const handleLiveChat = async () => {
+    const remainingCredit = credit - minimumLiveChatCredit;
+    const status = remainingCredit >= 0;
+
+    try {
+      setIsTyping(true);
+      const response = await axios.post('/api/chat/fiture/livechat', {
+        room_id: roomId,
+        status: status,
+        sender_name: userData?.sun,
+        bot_name: reciverName,
+        bot_photo: reciverPhoto
+      });
+      if (response.status === 200) {
+        setToThreadId(response.data.thread_id)
+        setTypeChat(response.data.type_chat);
+        setAgentResponse(response.data.agent_response);
+        toast.success('Sedang menghubungkan agent.')
       }
       setIsTyping(false);
     } catch (error) {
@@ -119,7 +147,7 @@ function ListCmd(props) {
         )}
         <span href='#' className='btn btn-outline-primary btn-sm'>Topik</span>
         <span href='#' className='btn btn-outline-primary btn-sm'>Bantuan</span>
-        <span href='#' className='btn btn-outline-primary btn-sm'>Live Chat</span>
+        <span href='#' className='btn btn-outline-primary btn-sm' onClick={handleLiveChat}>Live Chat</span>
         <span href='#' className='btn btn-outline-primary btn-sm' onClick={handleAssistant}>Chat Assistant</span>
       </div>
     </div>

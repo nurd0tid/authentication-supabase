@@ -25,14 +25,23 @@ const Chat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [initialFetchComplete, setInitialFetchComplete] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState('');
+  const [roomBy, setRoomBy] = useState('');
   const [toThreadId, setToThreadId] = useState('');
   const [toAssistantId, setToAssistantId] = useState('');
   const [typeChat, setTypeChat] = useState('');
   const [userCredit, setUserCredit] = useState(0);
   const [reciverName, setReciverName] = useState('');
   const [reciverPhoto, setReciverPhoto] = useState('');
+  const [senderName, setSenderName] = useState('');
+  const [senderPhoto, setSenderPhoto] = useState('');
   const [scrollMessage, setScrollMessage] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(900);
+  const [minimumCredit, setMinimumCredit] = useState(5);
+  const [minimumLiveChatCredit, setMinimumLiveChatCredit] = useState(15);
+  const [liveChatData, setLiveChatData] = useState([])
+  const [chatAgent, setChatAgent] = useState(false);
+  const [agentResponse, setAgentResponse] = useState(null);
+  const [timeChatAgent, setTimeChatAgent] = useState('');
+  const [timeDifference, setTimeDifference] = useState(''); // Selisih waktu dalam detik
   const messagesEndRef = useRef(null);
 
   // Fetching Me
@@ -172,51 +181,83 @@ const Chat = () => {
     try {
       setIsLoading(true);
       setInputText(''); 
-      if (typeChat === 0) {
-        const response = await axios.post('/api/chat/sending/bot', { 
-          text: inputText, 
-          sender: 'user', 
-          room_id: selectedRoom,
-          sender_name: userData?.sun,
-          sender_photo: userData?.photo,
-          bot_name: reciverName,
-          bot_photo: reciverPhoto
-        });
-        if (response.status === 200) {
-          setSelectedRoom(selectedRoom)
-          setInputText('');
-          setIsLoading(false);
-          toast.success(response.data.message);
+      if (userData?.role === 'Users') {        
+        if (typeChat === 0) {
+          const response = await axios.post('/api/chat/sending/bot', { 
+            text: inputText, 
+            sender: 'user', 
+            room_id: selectedRoom,
+            sender_name: userData?.sun,
+            sender_photo: userData?.photo,
+            bot_name: reciverName,
+            bot_photo: reciverPhoto
+          });
+          if (response.status === 200) {
+            setSelectedRoom(selectedRoom)
+            setInputText('');
+            setIsLoading(false);
+            toast.success(response.data.message);
+          }
+        } else if(typeChat === 1) {
+          const remainingCredit = userCredit - 5;
+          const status = remainingCredit >= 0;
+          const finalCredit = status ? remainingCredit : 0;
+  
+          const response = await axios.post('/api/chat/sending/ai', { 
+            text: inputText, 
+            sender: 'user', 
+            thread_id: toThreadId, 
+            room_id: selectedRoom,
+            assistant_id:  toAssistantId,
+            status: status,
+            credit: finalCredit,
+            userId: userData?.sud,
+            sender_name: userData?.sun,
+            sender_photo: userData?.photo,
+            bot_name: reciverName,
+            bot_photo: reciverPhoto
+          });
+          if (response.status === 200) {
+            setInputText('');
+            setIsLoading(false);
+            toast.success(response.data.message);
+          } else if (response.status === 201) {
+            setInputText('');
+            setIsLoading(false);
+            setTypeChat(response.data.type_chat);
+            toast.warning(response.data.message);
+          }
+        } else if(typeChat === 2) {
+          const response = await axios.post('/api/chat/sending/livechat/users', { 
+            text: inputText, 
+            sender: 'user', 
+            room_id: selectedRoom,
+            agent_response: agentResponse,
+            sender_name: userData?.sun,
+            sender_photo: userData?.photo,
+            bot_name: reciverName,
+            bot_photo: reciverPhoto
+          });
+          if (response.status === 200) {
+            setInputText('');
+            setIsLoading(false);
+            toast.success(response.data.message);
+          }
         }
-      } else if(typeChat === 1) {
-        const remainingCredit = userCredit - 5;
-        const status = remainingCredit >= 0;
-        const finalCredit = status ? remainingCredit : 0;
-
-        const response = await axios.post('/api/chat/sending/ai', { 
-          text: inputText, 
-          sender: 'user', 
-          thread_id: toThreadId, 
-          room_id: selectedRoom,
-          assistant_id:  toAssistantId,
-          status: status,
-          credit: finalCredit,
-          userId: userData?.sud,
-          sender_name: userData?.sun,
-          sender_photo: userData?.photo,
-          bot_name: reciverName,
-          bot_photo: reciverPhoto
-        });
-        if (response.status === 200) {
-          setInputText('');
-          setIsLoading(false);
-          toast.success(response.data.message);
-        } else if (response.status === 201) {
-          setInputText('');
-          setIsLoading(false);
-          setTypeChat(response.data.type_chat);
-          toast.warning(response.data.message);
-        }
+      } else {
+        const response = await axios.post('/api/chat/sending/livechat/admin', { 
+            text: inputText, 
+            sender: 'admin', 
+            room_id: selectedRoom,
+            sender_name: userData?.sun,
+            sender_photo: userData?.photo
+          });
+          if (response.status === 200) {
+            setSelectedRoom(selectedRoom)
+            setInputText('');
+            setIsLoading(false);
+            toast.success(response.data.message);
+          }
       }
       
     } catch (error) {
@@ -224,6 +265,50 @@ const Chat = () => {
       toast.error(error.response.data.message);
     }
   };
+
+  const handleResponseLiveChat = async () => {
+    const response = await axios.post('/api/chat/sending/livechat/response', { 
+      sender: 'system', 
+      room_id: selectedRoom,
+      room_by: roomBy,
+      bot_name: reciverName,
+      bot_photo: reciverPhoto,
+      minimum_credit: minimumLiveChatCredit
+    });
+    if (response.status === 200) {
+      setSelectedRoom(selectedRoom)
+      // setToThreadId(response.data.thread_room_id);
+      // setTimeChatAgent(response.data.time_chat_agent);
+      // setChatAgent(response.data.start_chat_agent);
+      // setAgentResponse(response.data.agent_response);
+      setInputText('');
+      setIsLoading(false);
+      toast.success(response.data.message);
+    }
+  }
+
+  // realtime update status livechat
+  useEffect(() => {
+    if (selectedRoom) {
+      const channel = supabase
+        .channel('realtime thread')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'thread' }, handleRoomUpdated)
+        .subscribe()
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [selectedRoom]);
+
+  const handleRoomUpdated = (payload) => {
+    const { new: updatedRoom } = payload
+    if (selectedRoom === updatedRoom.id) {
+      setChatAgent(updatedRoom.start_chat_agent);
+      setAgentResponse(updatedRoom.agent_response);
+      setTimeChatAgent(updatedRoom.time_chat_agent)
+    }
+  }
 
   function formatOutput(message) {
     const splitMessage = message.split('\n');
@@ -295,27 +380,39 @@ const Chat = () => {
       return formatDate;
     }
   }
-
-  // Mendefinisikan fungsi time left live agent
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setTimeLeft(prevTimeLeft => {
-  //       if (prevTimeLeft > 0) {
-  //         return prevTimeLeft - 1;
-  //       } else {
-  //         clearInterval(timer);
-  //         console.log('Waktu telah habis');
-  //         return 0;
-  //       }
-  //     });
-  //   }, 500); // setiap 1 detik
-
-  //   return () => clearInterval(timer); // membersihkan timer saat komponen unmount
-  // }, []);
-
-  // // Konversi detik menjadi menit dan detik
-  // const minutes = Math.floor(timeLeft / 60);
-  // const seconds = timeLeft % 60;
+  
+  useEffect(() => {
+    if (agentResponse && agentResponse !== null) {      
+      const interval = setInterval(() => {
+        const now = new Date();
+        const timeChatAgentArray = timeChatAgent.split(":");
+        const agentHours = parseInt(timeChatAgentArray[0]);
+        const agentMinutes = parseInt(timeChatAgentArray[1]);
+        const agentSeconds = parseInt(timeChatAgentArray[2]);
+  
+        const targetTime = new Date(now);
+        targetTime.setHours(agentHours, agentMinutes, agentSeconds);
+  
+        let differenceInSeconds = Math.floor((targetTime.getTime() - now.getTime()) / 1000);
+  
+        if (differenceInSeconds < 0) {
+          clearInterval(interval); // Stop interval if target time is reached
+          setTimeDifference("00:00"); // Set time difference to 00:00 if target time is reached
+          return;
+        }
+  
+        let remainingMinutes = Math.floor(differenceInSeconds / 60);
+        let remainingSeconds = differenceInSeconds % 60;
+  
+        // Format waktu mundur
+        let formattedTime = `${remainingMinutes < 10 ? '0' + remainingMinutes : remainingMinutes}:${remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds}`;
+  
+        setTimeDifference(formattedTime);
+      }, 1000);
+  
+      return () => clearInterval(interval);
+    }
+  }, [agentResponse]);
 
   return (
     <div>
@@ -327,188 +424,392 @@ const Chat = () => {
           userData={userData} 
           userCredit={userCredit}
           selectedRoom={selectedRoom}
-          initialFetchComplete={initialFetchComplete}
+          // initialFetchComplete={initialFetchComplete}
           setSelectedRoom={setSelectedRoom}
           setToAssistantId={setToAssistantId}
           setToThreadId={setToThreadId}
           setTypeChat={setTypeChat}
           setReciverName={setReciverName}
           setReciverPhoto={setReciverPhoto}
+          setSenderName={setSenderName}
+          setSenderPhoto={setSenderPhoto}
+          setChatAgent={setChatAgent}
+          setTimeChatAgent={setTimeChatAgent}
+          setAgentResponse={setAgentResponse}
+          setRoomBy={setRoomBy}
         />
         {selectedRoom ? (
-          <Col sm={12} md={12} lg={12} xxl={8}>
-            <Card>
-              <div className="main-content-app pt-0">
-                <div className="main-content-body main-content-body-chat h-100">
-                  <div className="main-chat-header pt-3 d-block d-sm-flex">
-                    <div className='d-flex mb-2'>
-                      {reciverPhoto ? (
-                        <div className="main-img-user me-3">
-                          <img alt="avatar" src={avatarContactUrl+reciverPhoto} />
+          userData?.role === 'Users' ? (
+            <Col sm={12} md={12} lg={12} xxl={8}>
+              <Card>
+                <div className="main-content-app pt-0">
+                  <div className="main-content-body main-content-body-chat h-100">
+                    <div className="main-chat-header pt-3 d-block d-sm-flex">
+                      <div className='d-flex mb-2'>
+                        {reciverPhoto ? (
+                          <div className="main-img-user me-3">
+                            <img alt="avatar" src={avatarContactUrl+reciverPhoto} />
+                          </div>
+                        ) : (
+                          <div className="avatar avatar-md brround bg-primary-transparent text-primary">{reciverName.trim().charAt(0)}</div>
+                        )}
+                        <div className="main-chat-msg-name mt-2">
+                          <h6>{reciverName}</h6>
                         </div>
-                      ) : (
-                        <div className="avatar avatar-md brround bg-primary-transparent text-primary">{reciverName.trim().charAt(0)}</div>
-                      )}
-                      <div className="main-chat-msg-name mt-2">
-                        <h6>{reciverName}</h6>
                       </div>
+                      <Nav>
+                        <Dropdown>
+                          <Dropdown.Toggle className="text-muted fs-20 no-caret" as="a"><i className="fe fe-more-horizontal mx-3"></i></Dropdown.Toggle>
+                          <Dropdown.Menu className="dropdown-menu-end">
+                            <Dropdown.Item href="#!"><i className="fe fe-phone-call me-1"></i> Phone Call</Dropdown.Item>
+                            <Dropdown.Item href="#!"><i className="fe fe-video me-1"></i> Video Call</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </Nav>
                     </div>
-                    <Nav>
-                      <div className="">
-                        <InputGroup>
-                          <FormControl type="text" placeholder="Search ..." />
-                          <InputGroup.Text className="btn bg-white text-muted border-start-0"><i className="fe fe-search"></i></InputGroup.Text>
-                        </InputGroup>
-                      </div>
-                      <Dropdown>
-                        <Dropdown.Toggle className="text-muted fs-20 no-caret" as="a"><i className="fe fe-more-horizontal mx-3"></i></Dropdown.Toggle>
-                        <Dropdown.Menu className="dropdown-menu-end">
-                          <Dropdown.Item href="#!"><i className="fe fe-phone-call me-1"></i> Phone Call</Dropdown.Item>
-                          <Dropdown.Item href="#!"><i className="fe fe-video me-1"></i> Video Call</Dropdown.Item>
-                          <Dropdown.Item href="#!"><i className="fe fe-user-plus me-1"></i> Add Contact</Dropdown.Item>
-                          <Dropdown.Item href="#!"><i className="fe fe-trash-2 me-1"></i> Delete</Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </Nav>
-                  </div>
-                  {/* <!-- main-chat-header --> */}
-                  <div className="main-chat-body flex-2" id="ChatBody" style={{ height: '350px' }}>
-                    {/* <span className="fullwidth-arrow-warning-ribbons"><div className="bar">Time Remaining: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></span> */}
-                    <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }} options={{ suppressScrollX: true, wheelPropagation: false }}>
-                      <div className="content-inner">
-                        {messages.map((msg, index) => (
-                          <div key={index}>
-                          {msg.role ===  'system' || msg.role === 'assistant' ? (
-                            <div className="media chat-left">
-                              {msg.sender_photo ? (
-                                <div className="main-img-user">
-                                  <img alt="avatar" src={avatarContactUrl+msg.sender_photo} />
-                                </div>
-                              ) : (
-                                <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
-                              )}
-                              <div className="media-body">
-                                <div className="main-msg-wrapper">
-                                    <div>
-                                      {formatOutput(msg.content)}
-                                      {msg.command_show && msg.initial_command === 0 ? (
-                                        <InitialCmd 
-                                          roomId={selectedRoom} 
-                                          setIsTyping={setIsTyping}
-                                          userData={userData} 
-                                          reciverName={reciverName}
-                                          reciverPhoto={reciverPhoto}
-                                        />
-                                        ) : msg.command_id && msg.command_show && msg.initial_command === 1 ? (
-                                        <CategoryCmd 
-                                          commandId={msg.command_id} 
-                                          roomId={selectedRoom} 
-                                          setIsTyping={setIsTyping} 
-                                          userData={userData} 
-                                          reciverName={reciverName}
-                                          reciverPhoto={reciverPhoto}
-                                        />
-                                        ) : msg.command_show && msg.initial_command === 2 ? (
-                                        <HelpCmd 
-                                          roomId={selectedRoom} 
-                                          setIsTyping={setIsTyping} 
-                                          commandId={msg.command_id}
-                                          userData={userData} 
-                                          reciverName={reciverName}
-                                          reciverPhoto={reciverPhoto}
-                                        />
-                                        ) : (
-                                        <></>
-                                      )}
+                    {/* <!-- main-chat-header --> */}
+                    <div className="main-chat-body flex-2" id="ChatBody" style={{ height: '350px' }}>
+                      {chatAgent && timeDifference !== ''  && timeDifference !== '00:00' && (
+                        <span className="fullwidth-arrow-warning-ribbons"><div className="bar">Time Remaining: {timeDifference}</div></span>
+                      )}
+                      <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }} options={{ suppressScrollX: true, wheelPropagation: false }}>
+                        <div className="content-inner">
+                          {messages.map((msg, index) => (
+                            <div key={index}>
+                            {msg.role ===  'system' || msg.role === 'assistant' || msg.role === 'admin' ?  (
+                              <div className="media chat-left">
+                                {msg.sender_photo ? (
+                                  msg.role === 'admin' ? (
+                                    <div className="main-img-user">
+                                      <img alt="avatar" src={avatarUrl+msg.sender_photo} />
                                     </div>
-                                </div>
-                                <div>
-                                  <div className='mb-2'>
-                                    <span style={{ fontSize: '12px' }} >{msg.sender_name} </span><br/>
-                                    <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                                  ) : (
+                                    <div className="main-img-user">
+                                      <img alt="avatar" src={avatarContactUrl+msg.sender_photo} />
+                                    </div>
+                                  )
+                                ) : (
+                                  <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
+                                )}
+                                <div className="media-body">
+                                  <div className="main-msg-wrapper">
+                                      <div>
+                                        {formatOutput(msg.content)}
+                                        {msg.command_show && msg.initial_command === 0 ? (
+                                          <InitialCmd 
+                                            roomId={selectedRoom} 
+                                            setIsTyping={setIsTyping}
+                                            userData={userData} 
+                                            reciverName={reciverName}
+                                            reciverPhoto={reciverPhoto}
+                                          />
+                                          ) : msg.command_id && msg.command_show && msg.initial_command === 1 ? (
+                                          <CategoryCmd 
+                                            commandId={msg.command_id} 
+                                            roomId={selectedRoom} 
+                                            setIsTyping={setIsTyping} 
+                                            userData={userData} 
+                                            reciverName={reciverName}
+                                            reciverPhoto={reciverPhoto}
+                                          />
+                                          ) : msg.command_show && msg.initial_command === 2 ? (
+                                          <HelpCmd 
+                                            roomId={selectedRoom} 
+                                            setIsTyping={setIsTyping} 
+                                            commandId={msg.command_id}
+                                            userData={userData} 
+                                            reciverName={reciverName}
+                                            reciverPhoto={reciverPhoto}
+                                          />
+                                          ) : (
+                                          <></>
+                                        )}
+                                      </div>
                                   </div>
-                                  {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
+                                  <div>
+                                    <div className='mb-2'>
+                                      <span style={{ fontSize: '12px' }} >{msg.sender_name} </span><br/>
+                                      <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                                    </div>
+                                    {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="media flex-row-reverse chat-right">
-                              {msg.sender_photo ? (
-                                <div className="main-img-user">
-                                  <img alt="avatar" src={avatarUrl+msg.sender_photo} />
-                                </div>
-                              ) : (
-                                <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
-                              )}
-                              <div className="media-body">
-                                <div className="main-msg-wrapper">
-                                <div dangerouslySetInnerHTML={{ __html: msg.content }} />
-                                </div>
-                                <div>
-                                  <div className='mb-2'>
-                                    <span style={{ fontSize: '12px' }} className='media flex-row-reverse'>{msg.sender_name} </span>
-                                    <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                            ) : (
+                              <div className="media flex-row-reverse chat-right">
+                                {msg.sender_photo ? (
+                                  <div className="main-img-user">
+                                    <img alt="avatar" src={avatarUrl+msg.sender_photo} />
                                   </div>
-                                  {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
+                                ) : (
+                                  <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
+                                )}
+                                <div className="media-body">
+                                  <div className="main-msg-wrapper">
+                                  <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+                                  </div>
+                                  <div>
+                                    <div className='mb-2'>
+                                      <span style={{ fontSize: '12px' }} className='media flex-row-reverse'>{msg.sender_name} </span>
+                                      <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                                    </div>
+                                    {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            </div>
+                          ))}
+                          {isTyping && (
+                            <div>
+                              <div className="media chat-left mt-2">
+                                <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
+                                <div className="media-body">
+                                  <div className="main-msg-wrapper">
+                                    <div>
+                                      <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                                      <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                                      <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           )}
+                        </div>
+                        <div className='mt-2'></div>
+                      </PerfectScrollbar>
+                    </div>
+                    <ListCmd 
+                      typeChat={typeChat} 
+                      credit={userCredit} 
+                      roomId={selectedRoom} 
+                      userData={userData} 
+                      reciverName={reciverName}
+                      reciverPhoto={reciverPhoto}
+                      setToThreadId={setToThreadId}
+                      setToAssistantId={setToAssistantId}
+                      setTypeChat={setTypeChat}
+                      setIsTyping={setIsTyping}
+                      // setAgentResponse={setAgentResponse}
+                    />
+                    <div className="main-chat-footer">
+                      <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />
+                      <Link className="nav-link" data-bs-toggle="tooltip" href="" title="Attach a File"><i className="fe fe-paperclip"></i></Link>
+                      {isLoading ? (
+                        <div>
+                          <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                          <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                          <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                        </div>
+                      ) : ( 
+                        <>
+                          <Button className="btn btn-icon  btn-primary brround"  onClick={handleSendMessage}><i className="fa fa-paper-plane-o"></i></Button>
+                          <nav className="nav">
+                          </nav>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          ) : (
+            <Col sm={12} md={12} lg={12} xxl={8}>
+              <Card>
+                <div className="main-content-app pt-0">
+                  <div className="main-content-body main-content-body-chat h-100">
+                    <div className="main-chat-header pt-3 d-block d-sm-flex">
+                      <div className='d-flex mb-2'>
+                        {senderName ? (
+                          <div className="main-img-user me-3">
+                            <img alt="avatar" src={avatarUrl+senderPhoto} />
                           </div>
-                        ))}
-                        {isTyping && (
-                          <div>
-                            <div className="media chat-left mt-2">
-                              <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
-                              <div className="media-body">
-                                <div className="main-msg-wrapper">
+                        ) : (
+                          <div className="avatar avatar-md brround bg-primary-transparent text-primary">{senderName.trim().charAt(0)}</div>
+                        )}
+                        <div className="main-chat-msg-name mt-2">
+                          <h6>{senderName}</h6>
+                        </div>
+                      </div>
+                      <Nav>
+                        <Dropdown>
+                          <Dropdown.Toggle className="text-muted fs-20 no-caret" as="a"><i className="fe fe-more-horizontal mx-3"></i></Dropdown.Toggle>
+                          <Dropdown.Menu className="dropdown-menu-end">
+                            <Dropdown.Item href="#!"><i className="fe fe-phone-call me-1"></i> Phone Call</Dropdown.Item>
+                            <Dropdown.Item href="#!"><i className="fe fe-video me-1"></i> Video Call</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </Nav>
+                    </div>
+                    {/* <!-- main-chat-header --> */}
+                    <div className="main-chat-body flex-2" id="ChatBody" style={{ height: '350px' }}>
+                      {chatAgent && timeDifference !== '' && timeDifference !== '00:00' && (
+                        <span className="fullwidth-arrow-warning-ribbons"><div className="bar">Time Remaining: {timeDifference}</div></span>
+                      )}
+                      <PerfectScrollbar containerRef={ref => { messagesEndRef.current = ref; }} options={{ suppressScrollX: true, wheelPropagation: false }}>
+                        <div className="content-inner">
+                          {messages.map((msg, index) => (
+                            <div key={index}>
+                            {msg.role ===  'system' || msg.role === 'assistant' || msg.role === 'admin' ? (
+                              <div className="media flex-row-reverse chat-right">
+                                {msg.sender_photo ? (
+                                  msg.role === 'admin' ? (
+                                    <div className="main-img-user">
+                                      <img alt="avatar" src={avatarUrl+msg.sender_photo} />
+                                    </div>
+                                  ) : (
+                                    <div className="main-img-user">
+                                      <img alt="avatar" src={avatarContactUrl+msg.sender_photo} />
+                                    </div>
+                                  )
+                                ) : (
+                                  <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
+                                )}
+                                <div className="media-body">
+                                  <div className="main-msg-wrapper">
+                                      <div>
+                                        {formatOutput(msg.content)}
+                                        {msg.command_show && msg.initial_command === 0 ? (
+                                          <InitialCmd 
+                                            roomId={selectedRoom} 
+                                            setIsTyping={setIsTyping}
+                                            userData={userData} 
+                                            reciverName={reciverName}
+                                            reciverPhoto={reciverPhoto}
+                                          />
+                                          ) : msg.command_id && msg.command_show && msg.initial_command === 1 ? (
+                                          <CategoryCmd 
+                                            commandId={msg.command_id} 
+                                            roomId={selectedRoom} 
+                                            setIsTyping={setIsTyping} 
+                                            userData={userData} 
+                                            reciverName={reciverName}
+                                            reciverPhoto={reciverPhoto}
+                                          />
+                                          ) : msg.command_show && msg.initial_command === 2 ? (
+                                          <HelpCmd 
+                                            roomId={selectedRoom} 
+                                            setIsTyping={setIsTyping} 
+                                            commandId={msg.command_id}
+                                            userData={userData} 
+                                            reciverName={reciverName}
+                                            reciverPhoto={reciverPhoto}
+                                          />
+                                          ) : (
+                                          <></>
+                                        )}
+                                      </div>
+                                  </div>
                                   <div>
-                                    <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
-                                    <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
-                                    <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                                    <div className='mb-2'>
+                                      <span style={{ fontSize: '12px' }} className='media flex-row-reverse'>{msg.sender_name} </span>
+                                      <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                                    </div>
+                                    {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="media chat-left">
+                                {msg.sender_photo ? (
+                                  <div className="main-img-user">
+                                    <img alt="avatar" src={avatarUrl+msg.sender_photo} />
+                                  </div>
+                                ) : (
+                                  <div className="avatar avatar-md brround bg-primary-transparent text-primary">{msg?.sender_name.trim().charAt(0)}</div>
+                                )}
+                                <div className="media-body">
+                                  <div className="main-msg-wrapper">
+                                  <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+                                  </div>
+                                  <div>
+                                    <div className='mb-2'>
+                                      <span style={{ fontSize: '12px' }}>{msg.sender_name} </span><br/>
+                                      <span style={{ fontSize: '12px' }}>{formatDateTime(msg.created_at)}</span>
+                                    </div>
+                                    {/* <span>{msg.created_at}</span> <Link href=""><i className="icon ion-android-more-horizontal"></i></Link> */}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            </div>
+                          ))}
+                          {isTyping && (
+                            <div>
+                              <div className="media chat-left mt-2">
+                                <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
+                                <div className="media-body">
+                                  <div className="main-msg-wrapper">
+                                    <div>
+                                      <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                                      <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                                      <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
+                          )}
+                        </div>
+                        <div className='mt-2'></div>
+                      </PerfectScrollbar>
+                    </div>
+                      {chatAgent ? (
+                        <div className="main-chat-footer">
+                          <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />
+                          <Link className="nav-link" data-bs-toggle="tooltip" href="" title="Attach a File"><i className="fe fe-paperclip"></i></Link>
+                          {isLoading ? (
+                            <div>
+                              <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
+                              <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
+                              <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
+                            </div>
+                          ) : ( 
+                            <>
+                              <Button className="btn btn-icon  btn-primary brround"  onClick={handleSendMessage}><i className="fa fa-paper-plane-o"></i></Button>
+                              <nav className="nav">
+                              </nav>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        !agentResponse && agentResponse !== null ? (
+                          <div 
+                            style={{
+                              borderBlockStart: '1px solid #e9edf4',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              paddingTop: '10px',
+                              paddingBottom: '10px',
+                              maxWidth: '100%',
+                              maxHeight: '60px',
+                            }}
+                          >
+                            <div className='btn btn-outline-primary' style={{ animation: 'fadeIn 1.2s infinite' }} onClick={handleResponseLiveChat}>Connect Live Chat with Users</div>
                           </div>
-                        )}
-                      </div>
-                      <div className='mt-2'></div>
-                    </PerfectScrollbar>
-                  </div>
-                  <ListCmd 
-                    typeChat={typeChat} 
-                    credit={userCredit} 
-                    roomId={selectedRoom} 
-                    userData={userData} 
-                    reciverName={reciverName}
-                    reciverPhoto={reciverPhoto}
-                    setToThreadId={setToThreadId}
-                    setToAssistantId={setToAssistantId}
-                    setTypeChat={setTypeChat}
-                    setIsTyping={setIsTyping}
-                  />
-                  <div className="main-chat-footer">
-                    <input className="form-control" placeholder="Type your message here..." type="text"  value={inputText} onChange={(e) => setInputText(e.target.value)} />
-                    <Link className="nav-link" data-bs-toggle="tooltip" href="" title="Attach a File"><i className="fe fe-paperclip"></i></Link>
-                    {isLoading ? (
-                      <div>
-                        <span className="spinner-grow text-success me-2" style={{ width: '10px', height: '10px' }} ></span>
-                        <span className="spinner-grow text-success me-2 text-danger" style={{ width: '10px', height: '10px' }} ></span>
-                        <span className="spinner-grow text-success me-2 text-warning" style={{ width: '10px', height: '10px' }} ></span>
-                      </div>
-                    ) : ( 
-                      <>
-                        <Button className="btn btn-icon  btn-primary brround"  onClick={handleSendMessage}><i className="fa fa-paper-plane-o"></i></Button>
-                        <nav className="nav">
-                        </nav>
-                      </>
-                    )}
+                        ) : (
+                          <div 
+                            style={{
+                              borderBlockStart: '1px solid #e9edf4',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              paddingTop: '10px',
+                              maxWidth: '100%',
+                              maxHeight: '60px',
+                            }}
+                          >
+                            <p className='text-muted'>Users hasn't selected a feature or initiated a live chat yet.</p>
+                          </div>
+                        )
+                      )}
                   </div>
                 </div>
-              </div>
-            </Card>
-          </Col>
+              </Card>
+            </Col>
+          )
         ) : (
           <Col sm={12} md={12} lg={12} xxl={8}>
             <Card>

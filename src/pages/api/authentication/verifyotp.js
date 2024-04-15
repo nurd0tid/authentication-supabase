@@ -46,18 +46,33 @@ export default async function handler(req, res) {
     //   process.env.JWT_SECRET,
     //   { expiresIn: '6h' }
     // );
-    const key = new TextEncoder().encode(process.env.JWT_SECRET)
-    const token = await new SignJWT({ sun: user.name, sud: user.id, sur: user.roles.id, role: user.roles.name, photo: user.photo })
-      .setProtectedHeader({ alg: 'HS256' }) // Set the algorithm
-      .setIssuedAt() // Set the time the token was issued
-      .setExpirationTime('6h') // Set the expiration time
-      .sign(key); // Sign the token with the secret
 
-    // Set cookie
-    res.setHeader('Set-Cookie', `currentUser=${JSON.stringify({
-      accessToken: token,
-      expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 6 hours
-    })}; Path=/; HttpOnly`);
+    const key = new TextEncoder().encode(process.env.JWT_SECRET)
+    if (user.roles.name === 'Users') {      
+      const token = await new SignJWT({ sun: user.name, sud: user.id, sur: user.roles.id, role: user.roles.name, photo: user.photo })
+        .setProtectedHeader({ alg: 'HS256' }) // Set the algorithm
+        .setIssuedAt() // Set the time the token was issued
+        .setExpirationTime('6h') // Set the expiration time
+        .sign(key); // Sign the token with the secret
+  
+      // Set cookie
+      res.setHeader('Set-Cookie', `currentUser=${JSON.stringify({
+        accessToken: token,
+        expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 6 hours
+      })}; Path=/; HttpOnly`);
+    } else {
+      const token = await new SignJWT({ sun: user.name, sud: user.id, sur: user.roles.id, role: user.roles.name, photo: user.photo, group_id: user.group_contact })
+        .setProtectedHeader({ alg: 'HS256' }) // Set the algorithm
+        .setIssuedAt() // Set the time the token was issued
+        .setExpirationTime('6h') // Set the expiration time
+        .sign(key); // Sign the token with the secret
+        
+        // Set cookie
+        res.setHeader('Set-Cookie', `currentUser=${JSON.stringify({
+          accessToken: token,
+          expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(), // 6 hours
+        })}; Path=/; HttpOnly`);
+    }
 
     return res.status(200).json({ message: 'OTP verified successfully' });
   } catch (error) {

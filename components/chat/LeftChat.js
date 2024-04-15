@@ -16,9 +16,15 @@ function LeftChat(props) {
     setToAssistantId,
     setToThreadId,
     setTypeChat,
-    initialFetchComplete,
+    // initialFetchComplete,
     setReciverName,
-    setReciverPhoto
+    setReciverPhoto,
+    setSenderName,
+    setSenderPhoto,
+    setChatAgent,
+    setTimeChatAgent,
+    setAgentResponse,
+    setRoomBy
   } = props
   const avatarContactUrl = process.env.NEXT_PUBLIC_AVATAR_CONTACT_URL;
   const [dataContact, setDataContact] = useState([]);
@@ -26,18 +32,32 @@ function LeftChat(props) {
   const [defaultActiveTab, setDefaultActiveTab] = useState('msg'); // state for default active tab
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_URL;
   const [sideMessage, setSideMessage] = useState([]);
+  const [initialFetchComplete, setInitialFetchComplete] = useState(false);
 
   useEffect(() => {
-    if (userData) {      
+    if (userData) {
       const fetchSideMessage = async () => {
         try {
-          const response = await axios.get('/api/chat/sidemsg', {
-              params: {
-              id: userData?.sud
+          if (userData?.role === 'Users') {            
+            const response = await axios.get('/api/chat/sidemsg', {
+                params: {
+                id: userData?.sud
+              }
+            });
+            if (response.status === 201) {
+              setInitialFetchComplete(true);
+              setSideMessage(response.data);
             }
-          });
-          if (response.status === 201) {
-            setSideMessage(response.data);
+          } else {
+            const response = await axios.get('/api/chat/sidemsg', {
+                params: {
+                id: userData?.group_id
+              }
+            });
+            if (response.status === 201) {
+              setInitialFetchComplete(true);
+              setSideMessage(response.data);
+            }
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -63,7 +83,7 @@ function LeftChat(props) {
     fetchContact();
   }, []);
 
-    // realtime side message room
+  // realtime side message room
   useEffect(() => {
     if (initialFetchComplete) {
       const channel = supabase
@@ -80,8 +100,14 @@ function LeftChat(props) {
 
   const handleRoomInserted = (payload) => {
     const { new: newRoom } = payload
-    if (newRoom.room_by || newRoom.reciver === userData.id) {
-      setSideMessage((prevRooms) => [...prevRooms, newRoom])
+    if (userData?.role === 'Users') {      
+      if (newRoom.room_by === userData?.sud) {
+        setSideMessage((prevRooms) => [...prevRooms, newRoom])
+      }
+    } else {
+      if (newRoom.reciver_group === userData?.group_id) {
+        setSideMessage((prevRooms) => [...prevRooms, newRoom])
+      }
     }
   }
 
@@ -94,7 +120,10 @@ function LeftChat(props) {
             return {
               ...room,
               last_message: updatedRoom.last_message,
-              updated_at: updatedRoom.updated_at
+              updated_at: updatedRoom.updated_at,
+              agent_response: updatedRoom.agent_response,
+              start_chat_agent: updatedRoom.start_chat_agent,
+              time_chat_agent: updatedRoom.time_chat_agent
             }
           }
           
@@ -105,13 +134,19 @@ function LeftChat(props) {
     }
   }
 
-  const handleRoomSelection = (roomId, threadId, assistantsId, typechat, reciverName, reciverPhoto) => {
+  const handleRoomSelection = (roomId, threadId, assistantsId, typechat, reciverName, reciverPhoto, senderName, senderPhoto, chatAgent, chatTimeAgent, agentResponse, roomBy) => {
     setReciverName(reciverName);
     setReciverPhoto(reciverPhoto);
+    setSenderName(senderName);
+    setSenderPhoto(senderPhoto);
     setSelectedRoom(roomId);
     setToAssistantId(assistantsId);
     setToThreadId(threadId);
     setTypeChat(typechat);
+    setChatAgent(chatAgent);
+    setAgentResponse(agentResponse)
+    setTimeChatAgent(chatTimeAgent);
+    setRoomBy(roomBy);
   };
 
   const clickContact = async (reciverName, assistantId, reciverGroup, reciverPhoto) => {
@@ -120,6 +155,7 @@ function LeftChat(props) {
         room_by: userData?.sud,
         new_assistant_id: assistantId,
         sender_name: userData?.sun,
+        sender_photo: userData?.photo,
         reciver_name: reciverName,
         assistant_id: assistantId,
         reciver_group: reciverGroup,
@@ -190,7 +226,11 @@ function LeftChat(props) {
                 </div>
                 <div className="main-chat-msg-name">
                   <h6>{userData?.sun}</h6>
-                  <span className={`dot-label ${userCredit === 0 ? 'bg-danger' : 'bg-success'}`}></span><small className="me-3">Your Credit ({userCredit})</small>
+                  {userData?.role === 'Users' && (
+                    <>
+                      <span className={`dot-label ${userCredit === 0 ? 'bg-danger' : 'bg-success'}`}></span><small className="me-3">Your Credit ({userCredit})</small>
+                    </>
+                  )}
                 </div>
               </Card.Body>
 
@@ -213,26 +253,81 @@ function LeftChat(props) {
                   )}
                 </Nav>
                 <Tab.Content className=' main-chat-list flex-2 mt-2'>
-                  <Tab.Pane eventKey="msg">
-                    <div className="main-chat-list tab-pane">
-                      {sideMessage && sideMessage.length > 0 ? (
-                        sideMessage.map((sidemsg, index) => (
-                          <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} onClick={() => handleRoomSelection(sidemsg.id, sidemsg.thread_id, sidemsg.assitants_id, sidemsg.type_chat, sidemsg.reciver_name, sidemsg.reciver_photo)}
->
-                            <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarContactUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
-                            <div className="media-body">
-                              <div className="media-contact-name">
-                                <span>{sidemsg.reciver_name}</span> <span>{formatDateTime(sidemsg.updated_at)}</span>
+                  {userData?.role === 'Users' ? (
+                    <Tab.Pane eventKey="msg">
+                      <div className="main-chat-list tab-pane">
+                        {sideMessage && sideMessage.length > 0 ? (
+                          sideMessage.map((sidemsg, index) => (
+                            <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} 
+                            onClick={() => handleRoomSelection(
+                              sidemsg.id, 
+                              sidemsg.thread_id,
+                              sidemsg.assitants_id, 
+                              sidemsg.type_chat, 
+                              sidemsg.reciver_name, 
+                              sidemsg.reciver_photo, 
+                              sidemsg.sender_name, 
+                              sidemsg.sender_photo, 
+                              sidemsg.start_chat_agent, 
+                              sidemsg.time_chat_agent, 
+                              sidemsg.agent_response
+                            )}
+  >
+                              <div className="main-img-user online"><img alt="user9" src={sidemsg.reciver_photo ? avatarContactUrl+sidemsg.reciver_photo : "../../../assets/images/legalnowy.png"} /></div>
+                              <div className="media-body">
+                                <div className="media-contact-name">
+                                  <span>{sidemsg.reciver_name}</span> <span>{formatDateTime(sidemsg.updated_at)}</span>
+                                </div>
+                                <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '35px'}}/>
                               </div>
-                              <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '35px'}}/>
-                            </div>
-                          </Link>
-                        ))
-                      ) : (
-                        <p className='text-center text-muted'>No message available.</p>
-                      )}
-                    </div>
-                  </Tab.Pane>
+                            </Link>
+                          ))
+                        ) : (
+                          <p className='text-center text-muted'>No message available.</p>
+                        )}
+                      </div>
+                    </Tab.Pane>
+                  ) : (
+                    <Tab.Pane eventKey="msg">
+                      <div className="main-chat-list tab-pane">
+                        {sideMessage && sideMessage.length > 0 ? (
+                          sideMessage.map((sidemsg, index) => (
+                            <Link  className={`media ${sidemsg.id === selectedRoom ? 'selected' : ''}`} href="#!" key={index} 
+                            onClick={() => handleRoomSelection(
+                              sidemsg.id, 
+                              sidemsg.thread_id, 
+                              sidemsg.assitants_id, 
+                              sidemsg.type_chat, 
+                              sidemsg.reciver_name, 
+                              sidemsg.reciver_photo, 
+                              sidemsg.sender_name, 
+                              sidemsg.sender_photo, 
+                              sidemsg.start_chat_agent, 
+                              sidemsg.time_chat_agent, 
+                              sidemsg.agent_response, 
+                              sidemsg.room_by
+                            )}> 
+                                {sidemsg.sender_photo ? (
+                                  <div className="main-img-user">
+                                    <img alt={sidemsg.sender_name} src={avatarUrl+sidemsg.sender_photo} />
+                                  </div>
+                                ) : (
+                                  <span className="avatar avatar-md brround bg-danger-transparent text-danger">{sidemsg.sender_name.charAt(0)}</span>
+                                )}
+                              <div className="media-body">
+                                <div className="media-contact-name">
+                                  <span>{sidemsg.sender_name}</span> <span>{formatDateTime(sidemsg.updated_at)}</span>
+                                </div>
+                                <p dangerouslySetInnerHTML={{ __html: sidemsg.last_message }} className='text-truncate' style={{ maxHeight: '35px'}}/>
+                              </div>
+                            </Link>
+                          ))
+                        ) : (
+                          <p className='text-center text-muted'>No message available.</p>
+                        )}
+                      </div>
+                    </Tab.Pane>
+                  )}
                   {userData?.role !== 'Super Admin' && userData?.role !== 'Manager' && (
                     <Tab.Pane eventKey="cnts">
                       <div>
