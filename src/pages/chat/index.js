@@ -380,8 +380,37 @@ const Chat = () => {
       return formatDate;
     }
   }
+
+  const liveChatTimeout = async () => {
+    const response = await axios.post('/api/chat/sending/livechat/timeout', { 
+      reciver: senderName,
+      sender: 'system', 
+      room_id: selectedRoom,
+      sender_name: reciverName,
+      sender_photo: reciverPhoto
+    });
+    if (response.status === 200) {
+      toast.warning(response.data.message);
+    }
+  }
+  
+  const liveChatReminder = async (time) => {
+    const response = await axios.post('/api/chat/sending/livechat/reminder', { 
+      reciver: senderName,
+      sender: 'system', 
+      room_id: selectedRoom,
+      sender_name: reciverName,
+      sender_photo: reciverPhoto,
+      time: time,
+    });
+    if (response.status === 200) {
+      toast.info(response.data.message);
+    }
+  }
   
   useEffect(() => {
+    let reminderCalled = false;
+
     if (agentResponse && agentResponse !== null) {      
       const interval = setInterval(() => {
         const now = new Date();
@@ -397,7 +426,12 @@ const Chat = () => {
   
         if (differenceInSeconds < 0) {
           clearInterval(interval); // Stop interval if target time is reached
-          setTimeDifference("00:00"); // Set time difference to 00:00 if target time is reached
+          setTimeDifference("00:00");
+          if (userData?.role === 'Users') {
+            liveChatTimeout(); // Set time difference to 00:00 if target time is reached
+          }else(
+            toast.info('Livechat dengan users berakhir!')
+          )
           return;
         }
   
@@ -408,6 +442,12 @@ const Chat = () => {
         let formattedTime = `${remainingMinutes < 10 ? '0' + remainingMinutes : remainingMinutes}:${remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds}`;
   
         setTimeDifference(formattedTime);
+
+        // Call liveChatReminder when time is less than 2 minutes
+        if (differenceInSeconds < 120 && userData?.role === 'Users' && !reminderCalled) {
+          liveChatReminder(formattedTime);
+          reminderCalled = true;
+        }
       }, 1000);
   
       return () => clearInterval(interval);
