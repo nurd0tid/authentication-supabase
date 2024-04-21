@@ -34,7 +34,32 @@ function LeftChat(props) {
   const [sideMessage, setSideMessage] = useState([]);
   const [initialFetchComplete, setInitialFetchComplete] = useState(false);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   if (userData) {
+  //     const fetchSideMessage = async () => {
+  //       try {
+  //         let id;
+  //         if (userData.role === 'Users') {
+  //           id = userData.sud;
+  //         } else {
+  //           id = userData.group_id;
+  //         }
+          
+  //         const response = await axios.get('/api/chat/sidemsg', { params: { id } });
+  //         if (response.status === 201) {
+  //           setInitialFetchComplete(true);
+  //           setSideMessage(response.data);
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching user data:', error);
+  //       }
+  //     };
+
+  //     fetchSideMessage();
+  //   }
+  // }, [userData]);
+
+    useEffect(() => {
     if (userData) {
       const fetchSideMessage = async () => {
         try {
@@ -68,6 +93,7 @@ function LeftChat(props) {
     }
   }, [userData]);
 
+
   useEffect(() => {  
     const fetchContact = async () => {
       try {
@@ -98,6 +124,8 @@ function LeftChat(props) {
     }
   }, [initialFetchComplete]);
 
+  console.log(userData?.sud)
+
   const handleRoomInserted = (payload) => {
     const { new: newRoom } = payload
     if (userData?.role === 'Users') {      
@@ -113,24 +141,44 @@ function LeftChat(props) {
 
   const handleRoomUpdated = (payload) => {
     const { new: updatedRoom } = payload
-    if (updatedRoom && updatedRoom.last_message && updatedRoom.id) {
-      setSideMessage((prevRooms) => {
-        return prevRooms.map((room) => {
-          if (room.id === updatedRoom.id) {
-            return {
-              ...room,
-              last_message: updatedRoom.last_message,
-              updated_at: updatedRoom.updated_at,
-              agent_response: updatedRoom.agent_response,
-              start_chat_agent: updatedRoom.start_chat_agent,
-              time_chat_agent: updatedRoom.time_chat_agent
+    if (userData?.role === 'Users') {      
+      if (updatedRoom && updatedRoom.last_message && updatedRoom.id && updatedRoom.room_by === userData?.sud) {
+        setSideMessage((prevRooms) => {
+          return prevRooms.map((room) => {
+            if (room.id === updatedRoom.id) {
+              return {
+                ...room,
+                last_message: updatedRoom.last_message,
+                updated_at: updatedRoom.updated_at,
+                agent_response: updatedRoom.agent_response,
+                start_chat_agent: updatedRoom.start_chat_agent,
+                time_chat_agent: updatedRoom.time_chat_agent,
+                type_chat: updatedRoom.type_chat
+              };
             }
-          }
-          
-          return room
-
+            return room;
+          })
         })
-      })
+      }
+    } else {
+      if (updatedRoom && updatedRoom.last_message && updatedRoom.id && updatedRoom.reciver_group === userData?.group_id) {
+        setSideMessage((prevRooms) => {
+          return prevRooms.map((room) => {
+            if (room.id === updatedRoom.id) {
+              return {
+                ...room,
+                last_message: updatedRoom.last_message,
+                updated_at: updatedRoom.updated_at,
+                agent_response: updatedRoom.agent_response,
+                start_chat_agent: updatedRoom.start_chat_agent,
+                time_chat_agent: updatedRoom.time_chat_agent,
+                type_chat: updatedRoom.type_chat
+              };
+            }
+            return room;
+          })
+        })
+      }
     }
   }
 

@@ -35,6 +35,7 @@ export default async function handler(req, res) {
             new_sender_photo: bot_photo,
           });
           if (error) throw new Error(error.message);
+          console.log(error)
 
           res.status(200).json(insertedMessage);
         } else {

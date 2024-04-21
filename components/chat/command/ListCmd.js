@@ -14,7 +14,7 @@ function ListCmd(props) {
     setToThreadId,
     setIsTyping,
     setTypeChat,
-    setAgentResponse,
+    // setAgentResponse,
   } = props
   const [minimumCredit, setMinimumCredit] = useState(5);
   const [minimumLiveChatCredit, setMinimumLiveChatCredit] = useState(15);
@@ -85,12 +85,13 @@ function ListCmd(props) {
       if (response.status === 200) {
         setToThreadId(response.data.thread_id)
         setTypeChat(response.data.type_chat);
-        setAgentResponse(response.data.agent_response);
+        // setAgentResponse(response.data.agent_response);
         toast.success('Sedang menghubungkan agent.')
       }
       setIsTyping(false);
     } catch (error) {
       setIsTyping(false);
+      console.log(error)
       toast.error('Something when wrong!')
     }
   }

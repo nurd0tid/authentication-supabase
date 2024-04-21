@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
         if (error) throw new Error(error.message);
 
-        res.status(200).json({ message: 'Waktu live chat berakhir!' });
+        res.status(200).json(insertedMessage);
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
       }

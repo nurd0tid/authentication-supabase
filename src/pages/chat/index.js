@@ -137,6 +137,7 @@ const Chat = () => {
 
   const handleMessageInserted = (payload) => {
     const { new: newMessage } = payload
+    console.log(newMessage)
     if (selectedRoom === newMessage.thread_room_id) {
       setScrollMessage(true)
       setMessages((prevMessage) => [...prevMessage, newMessage])
@@ -277,38 +278,41 @@ const Chat = () => {
     });
     if (response.status === 200) {
       setSelectedRoom(selectedRoom)
-      // setToThreadId(response.data.thread_room_id);
-      // setTimeChatAgent(response.data.time_chat_agent);
-      // setChatAgent(response.data.start_chat_agent);
-      // setAgentResponse(response.data.agent_response);
+      if (response.data.room_by) {        
+        setToThreadId(response.data.thread_room_id);
+        setTimeChatAgent(response.data.time_chat_agent);
+        setChatAgent(response.data.start_chat_agent);
+        setAgentResponse(response.data.agent_response);
+      }
       setInputText('');
       setIsLoading(false);
       toast.success(response.data.message);
     }
   }
 
-  // realtime update status livechat
-  useEffect(() => {
-    if (selectedRoom) {
-      const channel = supabase
-        .channel('realtime thread')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'thread' }, handleRoomUpdated)
-        .subscribe()
+  // // realtime update status livechat
+  // useEffect(() => {
+  //   if (selectedRoom) {
+  //     const channel = supabase
+  //       .channel('realtime thread')
+  //       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'thread' }, handleRoomUpdated)
+  //       .subscribe()
 
-      return () => {
-        channel.unsubscribe();
-      };
-    }
-  }, [selectedRoom]);
+  //     return () => {
+  //       channel.unsubscribe();
+  //     };
+  //   }
+  // }, [selectedRoom]);
 
-  const handleRoomUpdated = (payload) => {
-    const { new: updatedRoom } = payload
-    if (selectedRoom === updatedRoom.id) {
-      setChatAgent(updatedRoom.start_chat_agent);
-      setAgentResponse(updatedRoom.agent_response);
-      setTimeChatAgent(updatedRoom.time_chat_agent)
-    }
-  }
+  // const handleRoomUpdated = (payload) => {
+  //   const { new: updatedRoom } = payload
+  //   if (selectedRoom === updatedRoom.id) {
+  //     console.log('hit')
+  //     setChatAgent(updatedRoom.start_chat_agent);
+  //     setAgentResponse(updatedRoom.agent_response);
+  //     setTimeChatAgent(updatedRoom.time_chat_agent)
+  //   }
+  // }
 
   function formatOutput(message) {
     const splitMessage = message.split('\n');
@@ -390,7 +394,12 @@ const Chat = () => {
       sender_photo: reciverPhoto
     });
     if (response.status === 200) {
-      toast.warning(response.data.message);
+      setTypeChat(response.data.type_chat);
+      setToThreadId(response.data.thread_room_id);
+      setTimeChatAgent(response.data.time_chat_agent);
+      setChatAgent(response.data.start_chat_agent);
+      setAgentResponse(response.data.agent_response);
+      toast.warning('Waktu live chat berakhir!');
     }
   }
   
@@ -430,7 +439,7 @@ const Chat = () => {
           if (userData?.role === 'Users') {
             liveChatTimeout(); // Set time difference to 00:00 if target time is reached
           }else(
-            toast.info('Livechat dengan users berakhir!')
+            toast.info(`Livechat dengan users ${senderName} berakhir'`)
           )
           return;
         }
@@ -452,7 +461,9 @@ const Chat = () => {
   
       return () => clearInterval(interval);
     }
-  }, [agentResponse]);
+  }, [agentResponse, selectedRoom]);
+
+  console.log(typeChat, toThreadId, agentResponse, chatAgent, timeChatAgent)
 
   return (
     <div>
@@ -661,7 +672,7 @@ const Chat = () => {
                   <div className="main-content-body main-content-body-chat h-100">
                     <div className="main-chat-header pt-3 d-block d-sm-flex">
                       <div className='d-flex mb-2'>
-                        {senderName ? (
+                        {senderPhoto ? (
                           <div className="main-img-user me-3">
                             <img alt="avatar" src={avatarUrl+senderPhoto} />
                           </div>
@@ -775,7 +786,7 @@ const Chat = () => {
                             )}
                             </div>
                           ))}
-                          {isTyping && (
+                          {/* {isTyping && (
                             <div>
                               <div className="media chat-left mt-2">
                                 <div className="main-img-user online"><img alt="avatar" src={"../../../assets/images/legalnowy.png"} /></div>
@@ -790,7 +801,7 @@ const Chat = () => {
                                 </div>
                               </div>
                             </div>
-                          )}
+                          )} */}
                         </div>
                         <div className='mt-2'></div>
                       </PerfectScrollbar>
